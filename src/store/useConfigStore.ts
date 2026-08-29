@@ -11,16 +11,23 @@ export interface ColorOption {
 }
 
 export const PRESET_COLORS: ColorOption[] = [
+  { name: 'Light Oak', hex: '#d4a373', category: 'Wood' },
+  { name: 'Dark Walnut', hex: '#3f2e21', category: 'Wood' },
+  { name: 'Matte Black', hex: '#18181b', category: 'Modern' },
+  { name: 'Pearl White', hex: '#f8fafc', category: 'Modern' },
   { name: 'Marine Ocean Blue', hex: '#0284c7', category: 'Standard' },
   { name: 'Industrial Cyan', hex: '#06b6d4', category: 'Standard' },
   { name: 'Emerald Composite', hex: '#059669', category: 'Standard' },
   { name: 'Safety Signal Yellow', hex: '#eab308', category: 'Industrial' },
-  { name: 'Solaris Flame Orange', hex: '#ea580c', category: 'Industrial' },
-  { name: 'Signal Hazard Red', hex: '#dc2626', category: 'Industrial' },
-  { name: 'Cleanroom Arctic White', hex: '#f8fafc', category: 'Pure' },
   { name: 'Stealth Carbon Slate', hex: '#334155', category: 'Dark' },
-  { name: 'Midnight Onyx Black', hex: '#0f172a', category: 'Dark' },
-  { name: 'Refined Amber Resin', hex: '#d97706', category: 'Resin' },
+]
+
+export const WALL_COLORS: ColorOption[] = [
+  { name: 'Slate Gray', hex: '#334155', category: 'Neutral' },
+  { name: 'Warm Charcoal', hex: '#1e293b', category: 'Dark' },
+  { name: 'Architectural White', hex: '#e2e8f0', category: 'Light' },
+  { name: 'Warm Beige', hex: '#d6c7b2', category: 'Warm' },
+  { name: 'Concrete Gray', hex: '#64748b', category: 'Industrial' },
 ]
 
 export interface DoorConfig {
@@ -30,13 +37,15 @@ export interface DoorConfig {
   rightHeight: number
   thickness: number
   doorColor: string
-  openAngle: number
+  openAngle: number // Open angle in degrees (0° to 90°)
 }
 
 export interface ProductConfigState {
   productType: ProductType
   color: string
   colorName: string
+  wallColor: string
+  wallColorName: string
   finish: MaterialFinish
   roughness: number
   metalness: number
@@ -61,6 +70,7 @@ export interface ProductConfigState {
   // Actions
   setProductType: (type: ProductType) => void
   setColor: (hex: string, name?: string) => void
+  setWallColor: (hex: string, name?: string) => void
   setFinish: (finish: MaterialFinish) => void
   setRoughness: (roughness: number) => void
   setMetalness: (metalness: number) => void
@@ -81,26 +91,28 @@ export interface ProductConfigState {
 
 const DEFAULT_STATE = {
   productType: 'door' as ProductType,
-  color: '#0284c7',
-  colorName: 'Marine Ocean Blue',
+  color: '#d4a373',
+  colorName: 'Light Oak',
+  wallColor: '#334155',
+  wallColorName: 'Slate Gray',
   finish: 'glossy' as MaterialFinish,
-  roughness: 0.15,
-  metalness: 0.05,
-  clearcoat: 0.9,
+  roughness: 0.25,
+  metalness: 0.08,
+  clearcoat: 0.8,
   transmission: 0.0,
   opacity: 1.0,
   wireframe: false,
   autoRotate: false,
   rotationSpeed: 1.0,
   envPreset: 'city' as EnvPreset,
-  showGrid: true,
+  showGrid: false,
   showDimensions: true,
   reinforcementRibs: true,
   flangeAccessory: true,
   dimensions: {
     height: 3.2,
     diameter: 2.2,
-    thickness: 12, // in mm
+    thickness: 12,
   },
   doorConfig: {
     topWidth: 90,
@@ -108,8 +120,8 @@ const DEFAULT_STATE = {
     leftHeight: 210,
     rightHeight: 210,
     thickness: 4.5,
-    doorColor: '#0284c7',
-    openAngle: 0,
+    doorColor: '#d4a373',
+    openAngle: 0, // Default closed
   },
 }
 
@@ -134,6 +146,14 @@ export const useConfigStore = create<ProductConfigState>((set) => ({
       colorName: name || (found ? found.name : 'Custom Shade'),
       doorConfig: { ...state.doorConfig, doorColor: color },
     }))
+  },
+
+  setWallColor: (wallColor, name) => {
+    const found = WALL_COLORS.find((c) => c.hex.toLowerCase() === wallColor.toLowerCase())
+    set({
+      wallColor,
+      wallColorName: name || (found ? found.name : 'Custom Wall Shade'),
+    })
   },
 
   setFinish: (finish) => {

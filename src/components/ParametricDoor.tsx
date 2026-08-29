@@ -1,5 +1,7 @@
 import React, { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { ParametricWall } from './ParametricWall'
+import { useConfigStore } from '../store/useConfigStore'
 
 export interface ParametricDoorProps {
   /** Top width of the door opening in cm (default: 90) */
@@ -12,7 +14,7 @@ export interface ParametricDoorProps {
   rightHeight?: number
   /** Door panel thickness in cm (default: 4.5) */
   thickness?: number
-  /** Color of the main door panel (default: '#0284c7') */
+  /** Color of the main door panel (default: '#d4a373') */
   doorColor?: string
   /** Color of the frame and sill (default: '#1e293b') */
   frameColor?: string
@@ -22,22 +24,22 @@ export interface ParametricDoorProps {
   frameDepth?: number
   /** Height of the floor sill in cm (default: 4) */
   sillHeight?: number
-  /** Door opening angle in radians (default: 0 = closed) */
+  /** Door opening angle in DEGREES (0° to 90°, default: 0) */
   openAngle?: number
   /** Show geometry wireframe (default: false) */
   wireframe?: boolean
   /** Unit scale factor to convert cm into Three.js world units (default: 0.01 for meters) */
   unitScale?: number
+  /** Render surrounding room wall */
+  showWall?: boolean
 }
 
 /**
- * ParametricDoor - Procedural 3D Door and Frame Component for @react-three/fiber
- * Programmatically computes and assembles:
- * 1. Floor-level sill
- * 2. Top header piece (sloped when leftHeight != rightHeight or topWidth != bottomWidth)
- * 3. Left frame pillar (scaled to leftHeight)
- * 4. Right frame pillar (scaled to rightHeight)
- * 5. Dynamically skewed / rectangular main door panel with hardware (handle & latch)
+ * ParametricDoor - Procedural 3D Door, Frame, and Environment Wall Component
+ * Assembles:
+ * 1. Floor sill & 3-piece frame (left, right, header)
+ * 2. Main door panel separated with hinge pivot alignment & openAngle (0°-90°) rotation
+ * 3. Surrounding dynamic ParametricWall
  */
 export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   topWidth = 90,
@@ -45,18 +47,21 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   leftHeight = 210,
   rightHeight = 210,
   thickness = 4.5,
-  doorColor = '#0284c7',
+  doorColor = '#d4a373',
   frameColor = '#1e293b',
   frameWidth = 5.5,
   frameDepth = 10,
   sillHeight = 4,
   openAngle = 0,
   wireframe = false,
-  unitScale = 0.01, // Convert cm to meters
+  unitScale = 0.01,
+  showWall = true,
 }) => {
   const doorPivotRef = useRef<THREE.Group>(null)
 
-  // Scale cm inputs to world units
+  const { wallColor } = useConfigStore()
+
+  // Convert cm to Three.js world meters
   const s = unitScale
   const W_top = topWidth * s
   const W_bot = bottomWidth * s
@@ -66,21 +71,25 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   const F_width = frameWidth * s
   const F_depth = frameDepth * s
   const S_height = sillHeight * s
-  const clearance = 0.4 * s // 4mm clearance gap between door panel and frame
+  const clearance = 0.004 // 4mm gap
 
-  // Compute 2D Outer Frame Boundary Coordinates (Centered at X=0, Base at Y=0)
+  // Convert openAngle degrees to radians
+  const openAngleRad = (openAngle * Math.PI) / 180
+
+  // -------------------------------------------------------------
+  // Vector Mathematics for Frame & Door Panel Geometry
+  // -------------------------------------------------------------
+
   const outerBL = new THREE.Vector2(-W_bot / 2, 0)
   const outerBR = new THREE.Vector2(W_bot / 2, 0)
   const outerTR = new THREE.Vector2(W_top / 2, H_right)
   const outerTL = new THREE.Vector2(-W_top / 2, H_left)
 
-  // Compute 2D Inner Door Frame Opening Coordinates (after frame profile offsets)
   const innerBL = new THREE.Vector2(-W_bot / 2 + F_width, S_height)
   const innerBR = new THREE.Vector2(W_bot / 2 - F_width, S_height)
 
-  // Header normal vectors to ensure uniform header thickness
   const headerDir = new THREE.Vector2().subVectors(outerTR, outerTL).normalize()
-  const headerNormal = new THREE.Vector2(-headerDir.y, headerDir.x) // Inward normal (downwards)
+  const headerNormal = new THREE.Vector2(-headerDir.y, headerDir.x)
 
   const innerTL = new THREE.Vector2()
     .copy(outerTL)
@@ -92,7 +101,7 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     .addScaledVector(headerNormal, -F_width)
     .add(new THREE.Vector2(-F_width, 0))
 
-  // Door Panel 4 Corners (Fitting inside the frame opening with clearance)
+  // Door Panel 4 Corners (Fitting inside opening with clearance)
   const doorBL = new THREE.Vector2(innerBL.x + clearance, innerBL.y + clearance)
   const doorBR = new THREE.Vector2(innerBR.x - clearance, innerBR.y + clearance)
   const doorTR = new THREE.Vector2(innerTR.x - clearance, innerTR.y - clearance)
@@ -113,16 +122,14 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     shape.lineTo(doorTL.x - pivotX, doorTL.y - pivotY)
     shape.closePath()
 
-    const extrudeSettings: THREE.ExtrudeGeometryOptions = {
+    const geo = new THREE.ExtrudeGeometry(shape, {
       depth: T_door,
       bevelEnabled: true,
       bevelSegments: 2,
       steps: 1,
       bevelSize: 0.003,
       bevelThickness: 0.003,
-    }
-
-    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings)
+    })
     geo.center()
     // Align front/back depth so pivot point sits at origin in Z
     geo.translate((doorBR.x - doorBL.x) / 2, (doorTL.y - doorBL.y) / 2, 0)
@@ -134,7 +141,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   // 2. Procedural Frame Component Geometries
   // -------------------------------------------------------------
 
-  // (a) Floor Sill Geometry
   const sillGeometry = useMemo(() => {
     const shape = new THREE.Shape()
     shape.moveTo(outerBL.x, 0)
@@ -156,7 +162,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     return geo
   }, [outerBL.x, outerBR.x, S_height, F_depth])
 
-  // (b) Left Frame Pillar Geometry
   const leftPillarGeometry = useMemo(() => {
     const shape = new THREE.Shape()
     shape.moveTo(outerBL.x, S_height)
@@ -173,7 +178,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       bevelThickness: 0.002,
     })
     geo.center()
-    // Center alignment in XY
     const midX = (outerBL.x + innerBL.x + innerTL.x + outerTL.x) / 4
     const midY = (S_height + S_height + innerTL.y + outerTL.y) / 4
     geo.translate(midX, midY, 0)
@@ -181,7 +185,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     return geo
   }, [outerBL.x, innerBL.x, innerTL.x, innerTL.y, outerTL.x, outerTL.y, S_height, F_depth])
 
-  // (c) Right Frame Pillar Geometry
   const rightPillarGeometry = useMemo(() => {
     const shape = new THREE.Shape()
     shape.moveTo(innerBR.x, S_height)
@@ -205,7 +208,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     return geo
   }, [innerBR.x, outerBR.x, outerTR.x, outerTR.y, innerTR.x, innerTR.y, S_height, F_depth])
 
-  // (d) Top Header Geometry
   const topHeaderGeometry = useMemo(() => {
     const shape = new THREE.Shape()
     shape.moveTo(outerTL.x, outerTL.y)
@@ -235,6 +237,19 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
 
   return (
     <group>
+      {/* 0. Environmental Context Surrounding Wall */}
+      {showWall && (
+        <ParametricWall
+          topWidth={W_top}
+          bottomWidth={W_bot}
+          leftHeight={H_left}
+          rightHeight={H_right}
+          frameWidth={F_width}
+          wallColor={wallColor}
+          wireframe={wireframe}
+        />
+      )}
+
       {/* 1. Floor Sill */}
       <mesh geometry={sillGeometry} castShadow receiveShadow>
         <meshStandardMaterial
@@ -275,30 +290,28 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
         />
       </mesh>
 
-      {/* 5. Main Door Panel & Hardware with Hinge Pivot */}
+      {/* 5. Main Door Panel & Hardware with Left Hinge Pivot (Rotation-Y = openAngleRad) */}
       <group
         ref={doorPivotRef}
         position={[doorBL.x, doorBL.y, 0]}
-        rotation={[0, openAngle, 0]}
+        rotation={[0, openAngleRad, 0]}
       >
-        {/* Main Door Panel Geometry */}
+        {/* Main Door Panel Geometry mapped directly to doorColor */}
         <mesh geometry={doorGeometry} castShadow receiveShadow>
           <meshStandardMaterial
-            color={doorColor}
+            color={new THREE.Color(doorColor)}
             roughness={0.25}
             metalness={0.08}
             wireframe={wireframe}
           />
         </mesh>
 
-        {/* Stainless Steel Door Hardware: Lever Handle & Rosette */}
+        {/* Stainless Steel Lever Handle & Rosette */}
         <group position={[handleWidthOffset, handleHeight, T_door / 2 + 0.005]}>
-          {/* Front Rosette */}
           <mesh castShadow>
             <cylinderGeometry args={[0.025, 0.025, 0.006, 24]} />
             <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
           </mesh>
-          {/* Front Lever Handle */}
           <mesh position={[0.045, 0, 0.02]} rotation={[0, 0, Math.PI / 2]} castShadow>
             <cylinderGeometry args={[0.008, 0.008, 0.11, 16]} />
             <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.1} />
@@ -309,7 +322,7 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
           </mesh>
         </group>
 
-        {/* Back Lever Handle & Rosette */}
+        {/* Back Handle & Rosette */}
         <group position={[handleWidthOffset, handleHeight, -T_door / 2 - 0.005]} rotation={[0, Math.PI, 0]}>
           <mesh castShadow>
             <cylinderGeometry args={[0.025, 0.025, 0.006, 24]} />
@@ -325,7 +338,7 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
           </mesh>
         </group>
 
-        {/* Top & Bottom Heavy-duty Butt Hinges */}
+        {/* Heavy-duty Butt Hinges on Left Axis */}
         {[0.15, 0.85].map((hingeRatio, idx) => (
           <group
             key={idx}

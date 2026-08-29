@@ -7,8 +7,10 @@ import {
   Ruler,
   Palette,
   Check,
+  RotateCw,
+  Home,
 } from 'lucide-react'
-import { useConfigStore } from '../store/useConfigStore'
+import { useConfigStore, WALL_COLORS } from '../store/useConfigStore'
 
 export interface ColorFinishOption {
   name: string
@@ -40,8 +42,10 @@ export interface ConfigPanelProps {
 
 /**
  * ConfigPanel - Mobile-first Glassmorphic Door Configuration Panel
- * Built with React and Tailwind CSS featuring strong frosted glass backdrop-blur-xl,
- * seamless canvas float, dynamic dimension sliders, color finish swatches, and quote CTA.
+ * Upgraded with:
+ * 1. Two-way binding for typing & dragging dimensions (editable <input type="number">).
+ * 2. Door Swing opening angle slider (0° to 90°).
+ * 3. Environment Context wall color swatches & picker.
  */
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   width: propWidth,
@@ -67,32 +71,41 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const heightRight = propHeightRight ?? store.doorConfig.rightHeight
   const thickness = propThickness ?? store.doorConfig.thickness
   const currentColor = propSelectedColor ?? store.color
+  const openAngle = store.doorConfig.openAngle
+  const wallColor = store.wallColor
+
+  // Helper helper to clamp number inputs within valid range limits
+  const clamp = (val: number, min: number, max: number) =>
+    Math.max(min, Math.min(max, isNaN(val) ? min : val))
 
   const handleWidthChange = (val: number) => {
-    if (onWidthChange) onWidthChange(val)
-    else store.setDoorConfig({ topWidth: val, bottomWidth: val })
+    const clamped = clamp(val, 70, 120)
+    if (onWidthChange) onWidthChange(clamped)
+    else store.setDoorConfig({ topWidth: clamped, bottomWidth: clamped })
   }
 
   const handleHeightLeftChange = (val: number) => {
-    if (onHeightLeftChange) onHeightLeftChange(val)
-    else store.setDoorConfig({ leftHeight: val })
+    const clamped = clamp(val, 180, 250)
+    if (onHeightLeftChange) onHeightLeftChange(clamped)
+    else store.setDoorConfig({ leftHeight: clamped })
   }
 
   const handleHeightRightChange = (val: number) => {
-    if (onHeightRightChange) onHeightRightChange(val)
-    else store.setDoorConfig({ rightHeight: val })
+    const clamped = clamp(val, 180, 250)
+    if (onHeightRightChange) onHeightRightChange(clamped)
+    else store.setDoorConfig({ rightHeight: clamped })
   }
 
   const handleThicknessChange = (val: number) => {
-    if (onThicknessChange) onThicknessChange(val)
-    else store.setDoorConfig({ thickness: val })
+    const clamped = clamp(val, 3.0, 8.0)
+    if (onThicknessChange) onThicknessChange(clamped)
+    else store.setDoorConfig({ thickness: clamped })
   }
 
   const handleFinishSelect = (swatch: ColorFinishOption) => {
     if (onColorChange) {
       onColorChange(swatch.hex, swatch.name)
     }
-    // Update global store color so meshStandardMaterial is updated reactively
     store.setColor(swatch.hex, swatch.name)
   }
 
@@ -152,20 +165,34 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
         {!isCollapsed && (
           <div className="p-5 space-y-6 max-h-[70vh] sm:max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar">
             
-            {/* SECTION 1: DIMENSIONS (cm) */}
+            {/* SECTION 1: DIMENSIONS (cm) WITH EDITABLE INPUTS & SLIDERS */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-400 tracking-wider uppercase">
-                <Ruler className="w-3.5 h-3.5" />
-                <span>Dimensions (cm)</span>
+              <div className="flex items-center justify-between text-xs font-bold text-amber-400 tracking-wider uppercase">
+                <div className="flex items-center gap-2">
+                  <Ruler className="w-3.5 h-3.5" />
+                  <span>Dimensions (cm)</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-normal lowercase">
+                  type or drag
+                </span>
               </div>
 
-              {/* 1. Width Slider */}
+              {/* 1. Width (Editable Number Input + Slider) */}
               <div className="space-y-1.5 p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-slate-300">Width</span>
-                  <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                    {width} cm
-                  </span>
+                  <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <input
+                      type="number"
+                      min="70"
+                      max="120"
+                      value={width}
+                      onChange={(e) => handleWidthChange(parseFloat(e.target.value))}
+                      onBlur={(e) => handleWidthChange(parseFloat(e.target.value))}
+                      className="w-12 bg-transparent text-right font-mono font-bold text-amber-400 focus:outline-none focus:ring-0 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="font-mono text-amber-400 text-xs">cm</span>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -182,13 +209,22 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
               </div>
 
-              {/* 2. Height (Left) Slider */}
+              {/* 2. Height (Left) Editable Input + Slider */}
               <div className="space-y-1.5 p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-slate-300">Height (Left)</span>
-                  <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                    {heightLeft} cm
-                  </span>
+                  <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <input
+                      type="number"
+                      min="180"
+                      max="250"
+                      value={heightLeft}
+                      onChange={(e) => handleHeightLeftChange(parseFloat(e.target.value))}
+                      onBlur={(e) => handleHeightLeftChange(parseFloat(e.target.value))}
+                      className="w-12 bg-transparent text-right font-mono font-bold text-amber-400 focus:outline-none focus:ring-0 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="font-mono text-amber-400 text-xs">cm</span>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -205,13 +241,22 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
               </div>
 
-              {/* 3. Height (Right) Slider */}
+              {/* 3. Height (Right) Editable Input + Slider */}
               <div className="space-y-1.5 p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-slate-300">Height (Right)</span>
-                  <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                    {heightRight} cm
-                  </span>
+                  <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <input
+                      type="number"
+                      min="180"
+                      max="250"
+                      value={heightRight}
+                      onChange={(e) => handleHeightRightChange(parseFloat(e.target.value))}
+                      onBlur={(e) => handleHeightRightChange(parseFloat(e.target.value))}
+                      className="w-12 bg-transparent text-right font-mono font-bold text-amber-400 focus:outline-none focus:ring-0 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="font-mono text-amber-400 text-xs">cm</span>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -228,13 +273,23 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
               </div>
 
-              {/* 4. Thickness Slider */}
+              {/* 4. Thickness Editable Input + Slider */}
               <div className="space-y-1.5 p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-slate-300">Thickness</span>
-                  <span className="font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
-                    {thickness} cm
-                  </span>
+                  <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                    <input
+                      type="number"
+                      min="3.0"
+                      max="8.0"
+                      step="0.5"
+                      value={thickness}
+                      onChange={(e) => handleThicknessChange(parseFloat(e.target.value))}
+                      onBlur={(e) => handleThicknessChange(parseFloat(e.target.value))}
+                      className="w-12 bg-transparent text-right font-mono font-bold text-amber-400 focus:outline-none focus:ring-0 text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="font-mono text-amber-400 text-xs">cm</span>
+                  </div>
                 </div>
                 <input
                   type="range"
@@ -252,7 +307,36 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               </div>
             </div>
 
-            {/* SECTION 2: FINISH */}
+            {/* SECTION 2: DOOR SWING OPENING ANGLE SLIDER (Prompt 2) */}
+            <div className="space-y-3 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between text-xs font-bold text-amber-400 tracking-wider uppercase">
+                <div className="flex items-center gap-2">
+                  <RotateCw className="w-3.5 h-3.5" />
+                  <span>Door Swing</span>
+                </div>
+                <span className="font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md border border-cyan-500/20 text-xs">
+                  {openAngle}°
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm space-y-1.5">
+                <input
+                  type="range"
+                  min="0"
+                  max="90"
+                  step="1"
+                  value={openAngle}
+                  onChange={(e) => store.setDoorConfig({ openAngle: parseInt(e.target.value) })}
+                  className="w-full accent-cyan-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                  <span>Closed (0°)</span>
+                  <span>Open (90°)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 3: FINISH SWATCHES */}
             <div className="space-y-3 pt-3 border-t border-white/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-400 tracking-wider uppercase">
@@ -274,7 +358,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     <button
                       key={swatch.name}
                       onClick={() => handleFinishSelect(swatch)}
-                      className={`group relative flex flex-col items-center gap-1.5 transition-all transform active:scale-95`}
+                      className="group relative flex flex-col items-center gap-1.5 transition-all transform active:scale-95"
                       title={swatch.name}
                     >
                       <div
@@ -304,7 +388,51 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               </div>
             </div>
 
-            {/* SECTION 3: FLOATING ACTION BUTTON */}
+            {/* SECTION 4: ENVIRONMENT CONTEXT (Prompt 3) */}
+            <div className="space-y-3 pt-3 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-400 tracking-wider uppercase">
+                  <Home className="w-3.5 h-3.5" />
+                  <span>Environment Context</span>
+                </div>
+                <span className="text-xs font-medium text-slate-300">
+                  {store.wallColorName}
+                </span>
+              </div>
+
+              {/* Wall Color Swatches */}
+              <div className="flex items-center justify-around p-3 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+                {WALL_COLORS.map((wSwatch) => {
+                  const isSelected =
+                    wallColor.toLowerCase() === wSwatch.hex.toLowerCase()
+
+                  return (
+                    <button
+                      key={wSwatch.name}
+                      onClick={() => store.setWallColor(wSwatch.hex, wSwatch.name)}
+                      className="group relative flex flex-col items-center gap-1 transition-all transform active:scale-95"
+                      title={wSwatch.name}
+                    >
+                      <div
+                        className={`w-7 h-7 rounded-full shadow-md transition-all flex items-center justify-center border-2 ${
+                          isSelected
+                            ? 'ring-4 ring-cyan-500/40 scale-110 border-white'
+                            : 'border-white/20 hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: wSwatch.hex }}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-medium group-hover:text-slate-200">
+                        {wSwatch.name.split(' ')[0]}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* SECTION 5: FLOATING ACTION BUTTON */}
             <div className="pt-2">
               <button
                 onClick={handleQuoteClick}
