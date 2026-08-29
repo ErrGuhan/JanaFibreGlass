@@ -1,0 +1,55 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ConfigurationStatus {
+  Draft
+  QuoteRequested
+  Ordered
+}
+
+enum DocumentType {
+  Invoice
+  TechnicalSpec
+  CADfile
+}
+
+model DoorConfiguration {
+  id          Int                  @id @default(autoincrement())
+  topWidth    Decimal              @db.Decimal(8, 2)
+  bottomWidth Decimal              @db.Decimal(8, 2)
+  leftHeight  Decimal              @db.Decimal(8, 2)
+  rightHeight Decimal              @db.Decimal(8, 2)
+  thickness   Decimal              @db.Decimal(8, 2)
+  hexColor    String               @db.VarChar(7)
+  status      ConfigurationStatus? @default(Draft)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  // Relation to associated customer documents (e.g. Invoices, CAD specs)
+  documents CustomerDocument[]
+
+  @@map("door_configurations")
+}
+
+model CustomerDocument {
+  id        String       @id @default(uuid())
+  configId  Int
+  fileName  String
+  fileType  DocumentType
+  fileUrl   String       @db.Text
+  createdAt DateTime     @default(now())
+
+  // Relational link to DoorConfiguration
+  doorConfiguration DoorConfiguration @relation(fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+  @@map("customer_documents")
+}
