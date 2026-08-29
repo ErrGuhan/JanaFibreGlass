@@ -23,13 +23,10 @@ const LightCanvasLoader = () => (
 )
 
 /**
- * App - Light-Theme Enterprise 3D Door Studio
- * Integrates:
- * 1. DashboardLayout shell (light theme).
- * 2. 3D Canvas placed in a white card container (bg-white rounded-2xl shadow-sm border border-gray-100).
- * 3. Light background <color attach="background" args={['#f8fafc']} /> matching slate-50.
- * 4. Daytime studio environment lighting & soft grounding ContactShadows.
- * 5. White card ConfigPanel side by side with the 3D Canvas.
+ * App - Cleaned Light-Theme Enterprise 3D Door Studio
+ * Updates:
+ * 1. Cleaned 3D Canvas Container Card: Top green dot header bar deleted, Canvas fills full space inside rounded-2xl card.
+ * 2. 3D Lighting Fix: <ambientLight intensity={0.7} />, <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />, plus fill light so interior frame surfaces are brightly illuminated.
  */
 export function App() {
   const [activeTab, setActiveTab] = useState('configurator')
@@ -43,23 +40,11 @@ export function App() {
           {/* Main 2-Column Responsive Dashboard Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            {/* COLUMN 1: Light-Theme 3D Canvas Container Card (lg:col-span-7 xl:col-span-8) */}
-            <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-3 relative h-[520px] sm:h-[620px] lg:h-[680px] overflow-hidden flex flex-col">
+            {/* COLUMN 1: Cleaned Light-Theme 3D Canvas Container Card (lg:col-span-7 xl:col-span-8) */}
+            <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 relative h-[560px] sm:h-[640px] lg:h-[720px] overflow-hidden flex flex-col">
               
-              {/* Card Header Status Bar */}
-              <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-slate-50/50 rounded-xl mb-2 z-10">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Realtime Parametric Engine</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs font-mono text-slate-500">
-                  <span>W: {doorConfig.bottomWidth}cm</span>
-                  <span>H: {doorConfig.leftHeight}cm</span>
-                </div>
-              </div>
-
-              {/* 3D WebGL Canvas Layer */}
-              <div className="relative flex-1 w-full h-full rounded-xl overflow-hidden">
+              {/* 3D WebGL Canvas Layer (Expands to fill entire card space) */}
+              <div className="relative flex-1 w-full h-full rounded-2xl overflow-hidden">
                 <Suspense fallback={<LightCanvasLoader />}>
                   <Canvas
                     shadows
@@ -75,17 +60,18 @@ export function App() {
                     {/* Background matching Tailwind #f8fafc slate-50 seamlessly */}
                     <color attach="background" args={['#f8fafc']} />
 
-                    {/* Daytime Studio Lighting */}
-                    <ambientLight intensity={0.95} />
+                    {/* Fixed 3D Daytime Lighting Setup (Eliminates pitch black shadows) */}
+                    <ambientLight intensity={0.7} />
                     <directionalLight
-                      position={[5, 8, 4]}
+                      position={[5, 10, 5]}
                       intensity={1.5}
                       castShadow
                       shadow-mapSize-width={1024}
                       shadow-mapSize-height={1024}
                       shadow-bias={-0.0001}
                     />
-                    <directionalLight position={[-4, 4, -3]} intensity={0.5} color="#e0f2fe" />
+                    <directionalLight position={[-5, 5, 5]} intensity={0.6} color="#ffffff" />
+                    <directionalLight position={[0, -2, 4]} intensity={0.3} color="#f8fafc" />
 
                     {/* Environment City Preset (Daytime Studio Light) */}
                     <Environment preset="city" environmentIntensity={1.0} resolution={256} />
@@ -98,7 +84,6 @@ export function App() {
                       rightHeight={doorConfig.rightHeight}
                       thickness={doorConfig.thickness}
                       doorColor={color}
-                      openAngle={doorConfig.openAngle}
                       wireframe={wireframe}
                     />
 
@@ -128,7 +113,7 @@ export function App() {
 
                 {/* Minimalist Controls Pill HUD (Bottom Left inside canvas card) */}
                 <div className="absolute bottom-4 left-4 z-10 hidden sm:block pointer-events-none">
-                  <div className="bg-white/80 backdrop-blur-md border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-3 text-[11px] text-slate-600 shadow-xs pointer-events-auto">
+                  <div className="bg-white/85 backdrop-blur-md border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-3 text-[11px] text-slate-600 shadow-xs pointer-events-auto">
                     <div className="flex items-center gap-1 text-slate-800">
                       <MousePointer className="w-3.5 h-3.5 text-blue-600" />
                       <span>Rotate</span>
@@ -148,7 +133,7 @@ export function App() {
               </div>
             </div>
 
-            {/* COLUMN 2: Light White-Card Configurator Panel (lg:col-span-5 xl:col-span-4) */}
+            {/* COLUMN 2: Streamlined White-Card Configurator Panel (lg:col-span-5 xl:col-span-4) */}
             <div className="lg:col-span-5 xl:col-span-4">
               <ConfigPanel />
             </div>

@@ -26,8 +26,7 @@ export interface ParametricWallProps {
 
 /**
  * ParametricWall - Environmental Context Wall Component
- * Assembles four separate <mesh> elements (Top Wall, Left Wall, Right Wall, Floor Base)
- * with boxGeometry to dynamically frame the door opening and simulate a large room wall.
+ * Assembles four separate <mesh> elements with roughness=0.8 to naturally catch light.
  */
 export const ParametricWall: React.FC<ParametricWallProps> = ({
   topWidth,
@@ -41,31 +40,26 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
   wallDepth = 0.15,
   wireframe = false,
 }) => {
-  // Opening dimensions including frame outer dimensions
   const outerWidth = Math.max(topWidth, bottomWidth) + frameWidth * 2
   const maxOpeningHeight = Math.max(leftHeight, rightHeight) + frameWidth
 
-  // Half dimensions
   const halfWallW = totalWallWidth / 2
   const halfDoorW = outerWidth / 2
 
-  // 1. Left Wall Segment: Extends from -halfWallW to -halfDoorW
   const leftWallWidth = halfWallW - halfDoorW
   const leftWallCenterX = -halfWallW + leftWallWidth / 2
 
-  // 2. Right Wall Segment: Extends from +halfDoorW to +halfWallW
   const rightWallWidth = halfWallW - halfDoorW
   const rightWallCenterX = halfDoorW + rightWallWidth / 2
 
-  // 3. Top Wall Segment: Sits above maxOpeningHeight up to totalWallHeight
   const topWallHeight = totalWallHeight - maxOpeningHeight
   const topWallCenterY = maxOpeningHeight + topWallHeight / 2
 
   const sharedMaterial = (
     <meshStandardMaterial
       color={new THREE.Color(wallColor)}
-      roughness={0.7}
-      metalness={0.1}
+      roughness={0.8}
+      metalness={0.05}
       wireframe={wireframe}
       side={THREE.DoubleSide}
     />
@@ -97,7 +91,7 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
         </mesh>
       )}
 
-      {/* 3. Top Wall Mesh (Framing the opening top header) */}
+      {/* 3. Top Wall Mesh */}
       {topWallHeight > 0 && (
         <mesh
           position={[0, topWallCenterY, 0]}
@@ -109,13 +103,13 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
         </mesh>
       )}
 
-      {/* 4. Skirt / Sub-floor Base (Underneath Floor Threshold) */}
+      {/* 4. Skirt / Sub-floor Base */}
       <mesh
         position={[0, -0.05, 0]}
         receiveShadow
       >
         <boxGeometry args={[totalWallWidth, 0.1, wallDepth + 0.1]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.5} metalness={0.2} />
+        <meshStandardMaterial color="#64748b" roughness={0.7} metalness={0.1} />
       </mesh>
     </group>
   )

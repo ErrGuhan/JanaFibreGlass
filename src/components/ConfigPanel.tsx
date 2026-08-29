@@ -7,8 +7,6 @@ import {
   Palette,
   RotateCw,
   Home,
-  Zap,
-  Play,
   Minus,
   Plus,
   MessageSquare,
@@ -46,12 +44,11 @@ export interface ConfigPanelProps {
 }
 
 /**
- * ConfigPanel - Light-Theme Enterprise White Card Design
- * Features:
- * 1. Clean structured white card (bg-white border border-gray-100 rounded-2xl shadow-sm).
- * 2. Primary labels: text-slate-800 font-semibold, secondary labels: text-slate-500 text-sm.
- * 3. Light gray stepper inputs (bg-slate-50 border border-gray-200) with text-slate-600 hover:bg-gray-100 steppers.
- * 4. Finish swatches with ring-2 ring-offset-2 ring-blue-500 on active selection.
+ * ConfigPanel - Streamlined Light-Theme Enterprise White Card Design
+ * Updates:
+ * 1. Subtitle removed.
+ * 2. Interaction section contains ONLY "Open Door Panel" text and its toggle switch (smooth spring open to 90 degrees).
+ * 3. Dimensions header helper text removed.
  */
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   width: propWidth,
@@ -79,8 +76,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const thickness = propThickness ?? store.doorConfig.thickness
   const currentColor = propSelectedColor ?? store.color
   const isDoorOpen = store.doorConfig.isDoorOpen
-  const openAngle = store.doorConfig.openAngle
-  const animationMode = store.doorConfig.animationMode
   const wallColor = store.wallColor
 
   const clamp = (val: number, min: number, max: number) =>
@@ -135,7 +130,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
       `🎨 *FINISH & ENVIRONMENT*\n` +
       `• Door Finish: ${activeFinishObj.name}\n` +
       `• Environment Wall: ${store.wallColorName}\n` +
-      `• Door Swing Status: ${isDoorOpen ? `Open (${openAngle}°)` : 'Closed'}\n\n` +
+      `• Door Swing Status: ${isDoorOpen ? 'Open (90°)' : 'Closed'}\n\n` +
       `Please provide a price estimate and lead time for delivery. Thank you!`
 
     const encodedMsg = encodeURIComponent(message)
@@ -150,23 +145,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   return (
     <div className={`w-full transition-all duration-300 select-none ${className}`}>
-      {/* 1. Main White Card Container (bg-white border border-gray-100 rounded-2xl shadow-sm) */}
+      {/* Main White Card Container */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden text-slate-800">
         
-        {/* Top Header */}
+        {/* Top Header (Subtitle Removed) */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
               <Sliders className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-800 tracking-tight">
-                Door Configurator
-              </h2>
-              <p className="text-xs text-slate-500">
-                Parametric Studio Specifications
-              </p>
-            </div>
+            <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+              Door Configurator
+            </h2>
           </div>
 
           <button
@@ -186,25 +176,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
         {!isCollapsed && (
           <div className="p-5 space-y-6">
             
-            {/* SECTION 1: INTERACTION & HINGE PHYSICS */}
+            {/* SECTION 1: INTERACTION & DOOR SWING (Streamlined: Only Open Door Panel Toggle) */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-800 uppercase tracking-wider">
-                <div className="flex items-center gap-2">
-                  <RotateCw className="w-4 h-4 text-blue-600" />
-                  <span>Interaction & Door Swing</span>
-                </div>
-                <span
-                  className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                    isDoorOpen
-                      ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {isDoorOpen ? `Open (${openAngle}°)` : 'Closed'}
-                </span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <RotateCw className="w-4 h-4 text-blue-600" />
+                <span>Interaction & Door Swing</span>
               </div>
 
-              {/* White Card "Open Door" Toggle Switch */}
+              {/* Clean White Card "Open Door Panel" Toggle Switch */}
               <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-gray-200">
                 <span className="text-xs font-semibold text-slate-800">
                   Open Door Panel
@@ -222,81 +201,13 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   />
                 </button>
               </div>
-
-              {/* Animation Mode Segmented Controls */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-100 border border-gray-200">
-                <button
-                  onClick={() => store.setAnimationMode('smooth')}
-                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                    animationMode === 'smooth'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Play className="w-3.5 h-3.5" />
-                  Smooth Glide
-                </button>
-                <button
-                  onClick={() => store.setAnimationMode('instant')}
-                  className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                    animationMode === 'instant'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  Instant Snap
-                </button>
-              </div>
-
-              {/* Secondary Swing Angle Stepper */}
-              {isDoorOpen && (
-                <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 space-y-2">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-blue-900">Swing Angle</span>
-                    <span className="font-mono font-bold text-blue-600 bg-white px-2 py-0.5 rounded-md border border-blue-200">
-                      {openAngle}°
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => store.setDoorConfig({ openAngle: Math.max(10, openAngle - 15) })}
-                      className="w-9 h-9 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold border border-gray-200 flex items-center justify-center shadow-xs"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <input
-                      type="range"
-                      min="10"
-                      max="180"
-                      step="5"
-                      value={openAngle}
-                      onChange={(e) =>
-                        store.setDoorConfig({ openAngle: parseInt(e.target.value) })
-                      }
-                      className="flex-1 accent-blue-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                    />
-                    <button
-                      onClick={() => store.setDoorConfig({ openAngle: Math.min(180, openAngle + 15) })}
-                      className="w-9 h-9 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold border border-gray-200 flex items-center justify-center shadow-xs"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* SECTION 2: DIMENSIONS (cm) WITH LIGHT GRAY STEPPER INPUTS */}
+            {/* SECTION 2: DIMENSIONS (cm) (Helper text removed) */}
             <div className="space-y-3.5 pt-3 border-t border-gray-100">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-800 uppercase tracking-wider">
-                <div className="flex items-center gap-2">
-                  <Ruler className="w-4 h-4 text-blue-600" />
-                  <span>Dimensions (cm)</span>
-                </div>
-                <span className="text-xs font-normal text-slate-500">
-                  Interactive Steppers
-                </span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                <Ruler className="w-4 h-4 text-blue-600" />
+                <span>Dimensions (cm)</span>
               </div>
 
               {/* 1. Width Stepper */}
@@ -445,7 +356,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               </div>
             </div>
 
-            {/* SECTION 3: FINISH SWATCHES WITH RING-2 RING-OFFSET-2 RING-BLUE-500 */}
+            {/* SECTION 3: FINISH SWATCHES */}
             <div className="space-y-3.5 pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">

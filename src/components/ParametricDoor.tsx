@@ -25,7 +25,7 @@ export interface ParametricDoorProps {
   frameDepth?: number
   /** Height of the floor sill in cm (default: 4) */
   sillHeight?: number
-  /** Door opening angle in DEGREES (0° to 180°, default: 90) */
+  /** Optional door opening angle in degrees */
   openAngle?: number
   /** Show geometry wireframe (default: false) */
   wireframe?: boolean
@@ -36,10 +36,10 @@ export interface ParametricDoorProps {
 }
 
 /**
- * ParametricDoor - 3D Door & Frame Component with Native 60FPS Spring Hinge Physics
- * Simulates weight & momentum:
- * - 'smooth': Spring physics (stiffness: 60, damping: 12, mass: 1.5)
- * - 'instant': Zero-duration snap
+ * ParametricDoor - 3D Door & Frame Component with 60FPS Spring Hinge Physics
+ * Features:
+ * - When isDoorOpen is true, rotates smoothly to exactly 90 degrees (Math.PI / 2 radians).
+ * - meshStandardMaterial roughness set to 0.8 so surfaces catch light naturally without pitch black shadows or shiny plastic sheen.
  */
 export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   topWidth = 90,
@@ -52,7 +52,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   frameWidth = 5.5,
   frameDepth = 10,
   sillHeight = 4,
-  openAngle: propOpenAngle,
   wireframe = false,
   unitScale = 0.01,
   showWall = true,
@@ -63,11 +62,9 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   const currentAngleRef = useRef(0)
   const velocityRef = useRef(0)
 
-  // Read door swing mechanics & physics settings from Zustand store
+  // Read door swing state from Zustand store
   const { doorConfig, wallColor } = useConfigStore()
-  const { isDoorOpen, openAngle: storeOpenAngle, animationMode } = doorConfig
-
-  const openAngle = propOpenAngle ?? storeOpenAngle
+  const { isDoorOpen } = doorConfig
 
   // Convert cm to Three.js world meters
   const s = unitScale
@@ -81,29 +78,25 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   const S_height = sillHeight * s
   const clearance = 0.004 // 4mm gap
 
+  // Target rotation: If isDoorOpen is true, target is exactly 90 degrees (Math.PI / 2 radians). Otherwise 0.
+  const targetRad = isDoorOpen ? Math.PI / 2 : 0
+
   // Real-time 60FPS Frame Hinge Spring Solver
   useFrame((_, delta) => {
     if (!doorPivotRef.current) return
 
-    const targetRad = isDoorOpen ? (openAngle * Math.PI) / 180 : 0
+    // Spring physics: stiffness = 60, damping = 12, mass = 1.5
+    const stiffness = 60
+    const damping = 12
+    const mass = 1.5
 
-    if (animationMode === 'instant') {
-      currentAngleRef.current = targetRad
-      velocityRef.current = 0
-    } else {
-      // Spring physics: stiffness = 60, damping = 12, mass = 1.5
-      const stiffness = 60
-      const damping = 12
-      const mass = 1.5
+    const springForce = -stiffness * (currentAngleRef.current - targetRad)
+    const dampingForce = -damping * velocityRef.current
+    const acceleration = (springForce + dampingForce) / mass
 
-      const springForce = -stiffness * (currentAngleRef.current - targetRad)
-      const dampingForce = -damping * velocityRef.current
-      const acceleration = (springForce + dampingForce) / mass
-
-      const dt = Math.min(delta, 0.05) // Cap delta step
-      velocityRef.current += acceleration * dt
-      currentAngleRef.current += velocityRef.current * dt
-    }
+    const dt = Math.min(delta, 0.05) // Cap delta step
+    velocityRef.current += acceleration * dt
+    currentAngleRef.current += velocityRef.current * dt
 
     doorPivotRef.current.rotation.y = currentAngleRef.current
   })
@@ -283,8 +276,8 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       <mesh geometry={sillGeometry} castShadow receiveShadow>
         <meshStandardMaterial
           color={frameColor}
-          roughness={0.4}
-          metalness={0.2}
+          roughness={0.7}
+          metalness={0.15}
           wireframe={wireframe}
         />
       </mesh>
@@ -293,8 +286,8 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       <mesh geometry={leftPillarGeometry} castShadow receiveShadow>
         <meshStandardMaterial
           color={frameColor}
-          roughness={0.4}
-          metalness={0.2}
+          roughness={0.7}
+          metalness={0.15}
           wireframe={wireframe}
         />
       </mesh>
@@ -303,8 +296,8 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       <mesh geometry={rightPillarGeometry} castShadow receiveShadow>
         <meshStandardMaterial
           color={frameColor}
-          roughness={0.4}
-          metalness={0.2}
+          roughness={0.7}
+          metalness={0.15}
           wireframe={wireframe}
         />
       </mesh>
@@ -313,22 +306,22 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       <mesh geometry={topHeaderGeometry} castShadow receiveShadow>
         <meshStandardMaterial
           color={frameColor}
-          roughness={0.4}
-          metalness={0.2}
+          roughness={0.7}
+          metalness={0.15}
           wireframe={wireframe}
         />
       </mesh>
 
-      {/* 5. Door Hinge Pivot Group (Rotated via useFrame Spring Solver) */}
+      {/* 5. Door Hinge Pivot Group (Rotated via useFrame Spring Solver to 90 degrees) */}
       <group
         ref={doorPivotRef}
         position={[doorBL.x, doorBL.y, 0]}
       >
-        {/* Main Door Panel Geometry mapped directly to doorColor */}
+        {/* Main Door Panel Geometry mapped directly to doorColor with 0.8 roughness */}
         <mesh geometry={doorGeometry} castShadow receiveShadow>
           <meshStandardMaterial
             color={new THREE.Color(doorColor)}
-            roughness={0.25}
+            roughness={0.8}
             metalness={0.08}
             wireframe={wireframe}
           />
@@ -338,15 +331,15 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
         <group position={[handleWidthOffset, handleHeight, T_door / 2 + 0.005]}>
           <mesh castShadow>
             <cylinderGeometry args={[0.025, 0.025, 0.006, 24]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
           </mesh>
           <mesh position={[0.045, 0, 0.02]} rotation={[0, 0, Math.PI / 2]} castShadow>
             <cylinderGeometry args={[0.008, 0.008, 0.11, 16]} />
-            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.1} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.15} />
           </mesh>
           <mesh position={[0, 0, 0.012]} rotation={[Math.PI / 2, 0, 0]} castShadow>
             <cylinderGeometry args={[0.009, 0.009, 0.022, 16]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
           </mesh>
         </group>
 
@@ -354,15 +347,15 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
         <group position={[handleWidthOffset, handleHeight, -T_door / 2 - 0.005]} rotation={[0, Math.PI, 0]}>
           <mesh castShadow>
             <cylinderGeometry args={[0.025, 0.025, 0.006, 24]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
           </mesh>
           <mesh position={[0.045, 0, 0.02]} rotation={[0, 0, Math.PI / 2]} castShadow>
             <cylinderGeometry args={[0.008, 0.008, 0.11, 16]} />
-            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.1} />
+            <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.15} />
           </mesh>
           <mesh position={[0, 0, 0.012]} rotation={[Math.PI / 2, 0, 0]} castShadow>
             <cylinderGeometry args={[0.009, 0.009, 0.022, 16]} />
-            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.15} />
+            <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
           </mesh>
         </group>
 
