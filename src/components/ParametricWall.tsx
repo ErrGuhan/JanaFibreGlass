@@ -12,11 +12,11 @@ export interface ParametricWallProps {
   rightHeight: number
   /** Frame face profile width in meters */
   frameWidth?: number
-  /** Wall color hex string */
+  /** Wall color hex string (default: '#FAFAFA' warm architectural white) */
   wallColor?: string
   /** Total wall width in meters (default: 6.0m) */
   totalWallWidth?: number
-  /** Total wall height in meters (default: 3.5m) */
+  /** Total wall height in meters (default: 3.6m) */
   totalWallHeight?: number
   /** Wall depth/thickness in meters (default: 0.15m = 15cm) */
   wallDepth?: number
@@ -25,8 +25,10 @@ export interface ParametricWallProps {
 }
 
 /**
- * ParametricWall - Environmental Context Wall Component
- * Assembles four separate <mesh> elements with roughness=0.8 to naturally catch light.
+ * ParametricWall - Architectural Room Wall Component
+ * Features:
+ * 1. Baseboard / Skirting Board geometry: Pure white (#FFFFFF), 10cm height x 1.5cm depth painted wood finish (roughness=0.4, metalness=0).
+ * 2. Soft warm architectural white matte drywall paint (#FAFAFA, roughness=0.9, metalness=0).
  */
 export const ParametricWall: React.FC<ParametricWallProps> = ({
   topWidth,
@@ -34,7 +36,7 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
   leftHeight,
   rightHeight,
   frameWidth = 0.055,
-  wallColor = '#334155',
+  wallColor = '#FAFAFA',
   totalWallWidth = 6.0,
   totalWallHeight = 3.6,
   wallDepth = 0.15,
@@ -55,13 +57,30 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
   const topWallHeight = totalWallHeight - maxOpeningHeight
   const topWallCenterY = maxOpeningHeight + topWallHeight / 2
 
-  const sharedMaterial = (
+  // Baseboard dimensions: 10cm height (0.10m) x 1.5cm thickness (0.015m)
+  const baseboardHeight = 0.10
+  const baseboardThickness = 0.015
+  const baseboardY = baseboardHeight / 2 // Sits flush on floor (0.05m)
+  const baseboardZ = wallDepth / 2 + baseboardThickness / 2 // Flush against front wall surface
+
+  // Drywall Paint Material (roughness=0.9, metalness=0)
+  const wallMaterial = (
     <meshStandardMaterial
       color={new THREE.Color(wallColor)}
-      roughness={0.8}
-      metalness={0.05}
+      roughness={0.9}
+      metalness={0.0}
       wireframe={wireframe}
       side={THREE.DoubleSide}
+    />
+  )
+
+  // Semi-Gloss Painted Wood Baseboard Material (Pure White #FFFFFF, roughness=0.4, metalness=0)
+  const baseboardMaterial = (
+    <meshStandardMaterial
+      color="#FFFFFF"
+      roughness={0.4}
+      metalness={0.0}
+      wireframe={wireframe}
     />
   )
 
@@ -75,7 +94,7 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
           receiveShadow
         >
           <boxGeometry args={[leftWallWidth, totalWallHeight, wallDepth]} />
-          {sharedMaterial}
+          {wallMaterial}
         </mesh>
       )}
 
@@ -87,7 +106,7 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
           receiveShadow
         >
           <boxGeometry args={[rightWallWidth, totalWallHeight, wallDepth]} />
-          {sharedMaterial}
+          {wallMaterial}
         </mesh>
       )}
 
@@ -99,17 +118,41 @@ export const ParametricWall: React.FC<ParametricWallProps> = ({
           receiveShadow
         >
           <boxGeometry args={[outerWidth, topWallHeight, wallDepth]} />
-          {sharedMaterial}
+          {wallMaterial}
         </mesh>
       )}
 
-      {/* 4. Skirt / Sub-floor Base */}
+      {/* 4. Left Baseboard / Skirting Board Mesh (Stretches from far-left to door frame left edge) */}
+      {leftWallWidth > 0 && (
+        <mesh
+          position={[leftWallCenterX, baseboardY, baseboardZ]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[leftWallWidth, baseboardHeight, baseboardThickness]} />
+          {baseboardMaterial}
+        </mesh>
+      )}
+
+      {/* 5. Right Baseboard / Skirting Board Mesh (Stretches from door frame right edge to far-right) */}
+      {rightWallWidth > 0 && (
+        <mesh
+          position={[rightWallCenterX, baseboardY, baseboardZ]}
+          castShadow
+          receiveShadow
+        >
+          <boxGeometry args={[rightWallWidth, baseboardHeight, baseboardThickness]} />
+          {baseboardMaterial}
+        </mesh>
+      )}
+
+      {/* 6. Sub-floor Threshold Skirt */}
       <mesh
         position={[0, -0.05, 0]}
         receiveShadow
       >
         <boxGeometry args={[totalWallWidth, 0.1, wallDepth + 0.1]} />
-        <meshStandardMaterial color="#64748b" roughness={0.7} metalness={0.1} />
+        <meshStandardMaterial color="#cbd5e1" roughness={0.6} metalness={0.1} />
       </mesh>
     </group>
   )

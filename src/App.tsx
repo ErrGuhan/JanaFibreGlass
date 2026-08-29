@@ -23,10 +23,10 @@ const LightCanvasLoader = () => (
 )
 
 /**
- * App - Cleaned Light-Theme Enterprise 3D Door Studio
- * Updates:
- * 1. Cleaned 3D Canvas Container Card: Top green dot header bar deleted, Canvas fills full space inside rounded-2xl card.
- * 2. 3D Lighting Fix: <ambientLight intensity={0.7} />, <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />, plus fill light so interior frame surfaces are brightly illuminated.
+ * App - Enterprise 3D Architectural Door Studio
+ * Features:
+ * 1. Grounding ContactShadows (position=[0,0,0], opacity=0.7, scale=10, blur=2.5, far=4) for high-end ambient occlusion where baseboards, frame & door meet the floor.
+ * 2. Daytime studio lighting & warm architectural drywall wall background.
  */
 export function App() {
   const [activeTab, setActiveTab] = useState('configurator')
@@ -43,7 +43,7 @@ export function App() {
             {/* COLUMN 1: Cleaned Light-Theme 3D Canvas Container Card (lg:col-span-7 xl:col-span-8) */}
             <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 relative h-[560px] sm:h-[640px] lg:h-[720px] overflow-hidden flex flex-col">
               
-              {/* 3D WebGL Canvas Layer (Expands to fill entire card space) */}
+              {/* 3D WebGL Canvas Layer */}
               <div className="relative flex-1 w-full h-full rounded-2xl overflow-hidden">
                 <Suspense fallback={<LightCanvasLoader />}>
                   <Canvas
@@ -60,7 +60,7 @@ export function App() {
                     {/* Background matching Tailwind #f8fafc slate-50 seamlessly */}
                     <color attach="background" args={['#f8fafc']} />
 
-                    {/* Fixed 3D Daytime Lighting Setup (Eliminates pitch black shadows) */}
+                    {/* Daytime Studio Lighting Setup */}
                     <ambientLight intensity={0.7} />
                     <directionalLight
                       position={[5, 10, 5]}
@@ -76,7 +76,7 @@ export function App() {
                     {/* Environment City Preset (Daytime Studio Light) */}
                     <Environment preset="city" environmentIntensity={1.0} resolution={256} />
 
-                    {/* Procedural Parametric 3D Door */}
+                    {/* Procedural Parametric 3D Door & Room Wall with Baseboards */}
                     <ParametricDoor
                       topWidth={doorConfig.topWidth}
                       bottomWidth={doorConfig.bottomWidth}
@@ -87,13 +87,13 @@ export function App() {
                       wireframe={wireframe}
                     />
 
-                    {/* Grounding ContactShadows casting soft shadow on floor */}
+                    {/* Grounding Ambient Occlusion Contact Shadow */}
                     <ContactShadows
                       position={[0, 0, 0]}
-                      opacity={0.6}
-                      scale={7}
-                      blur={2.0}
-                      far={3.0}
+                      opacity={0.7}
+                      scale={10}
+                      blur={2.5}
+                      far={4}
                       resolution={512}
                       color="#000000"
                     />
