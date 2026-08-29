@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export type ProductType = 'tank' | 'dome' | 'pipe' | 'enclosure' | 'door'
 export type MaterialFinish = 'glossy' | 'matte' | 'translucent' | 'metallic' | 'carbon'
 export type EnvPreset = 'city' | 'studio' | 'sunset' | 'forest' | 'apartment'
+export type AnimationMode = 'smooth' | 'instant'
 
 export interface ColorOption {
   name: string
@@ -37,7 +38,9 @@ export interface DoorConfig {
   rightHeight: number
   thickness: number
   doorColor: string
-  openAngle: number // Open angle in degrees (0° to 90°)
+  openAngle: number // Default 90 degrees
+  isDoorOpen: boolean // Default false
+  animationMode: AnimationMode // Default 'smooth'
 }
 
 export interface ProductConfigState {
@@ -86,6 +89,9 @@ export interface ProductConfigState {
   setFlangeAccessory: (flange: boolean) => void
   setDimensions: (dims: Partial<{ height: number; diameter: number; thickness: number }>) => void
   setDoorConfig: (config: Partial<DoorConfig>) => void
+  setIsDoorOpen: (isOpen: boolean) => void
+  toggleDoorOpen: () => void
+  setAnimationMode: (mode: AnimationMode) => void
   resetDefaults: () => void
 }
 
@@ -121,7 +127,9 @@ const DEFAULT_STATE = {
     rightHeight: 210,
     thickness: 4.5,
     doorColor: '#d4a373',
-    openAngle: 0, // Default closed
+    openAngle: 90, // Default 90 degrees
+    isDoorOpen: false, // Default closed
+    animationMode: 'smooth' as AnimationMode,
   },
 }
 
@@ -188,6 +196,18 @@ export const useConfigStore = create<ProductConfigState>((set) => ({
     set((state) => ({
       doorConfig: { ...state.doorConfig, ...config },
       color: config.doorColor ?? state.color,
+    })),
+  setIsDoorOpen: (isDoorOpen) =>
+    set((state) => ({
+      doorConfig: { ...state.doorConfig, isDoorOpen },
+    })),
+  toggleDoorOpen: () =>
+    set((state) => ({
+      doorConfig: { ...state.doorConfig, isDoorOpen: !state.doorConfig.isDoorOpen },
+    })),
+  setAnimationMode: (animationMode) =>
+    set((state) => ({
+      doorConfig: { ...state.doorConfig, animationMode },
     })),
   resetDefaults: () => set(DEFAULT_STATE),
 }))

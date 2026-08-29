@@ -1,4 +1,5 @@
 import React, { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { ParametricWall } from './ParametricWall'
 import { useConfigStore } from '../store/useConfigStore'
@@ -24,7 +25,7 @@ export interface ParametricDoorProps {
   frameDepth?: number
   /** Height of the floor sill in cm (default: 4) */
   sillHeight?: number
-  /** Door opening angle in DEGREES (0° to 90°, default: 0) */
+  /** Door opening angle in DEGREES (0° to 180°, default: 90) */
   openAngle?: number
   /** Show geometry wireframe (default: false) */
   wireframe?: boolean
@@ -35,11 +36,10 @@ export interface ParametricDoorProps {
 }
 
 /**
- * ParametricDoor - Procedural 3D Door, Frame, and Environment Wall Component
- * Assembles:
- * 1. Floor sill & 3-piece frame (left, right, header)
- * 2. Main door panel separated with hinge pivot alignment & openAngle (0°-90°) rotation
- * 3. Surrounding dynamic ParametricWall
+ * ParametricDoor - 3D Door & Frame Component with Native 60FPS Spring Hinge Physics
+ * Simulates weight & momentum:
+ * - 'smooth': Spring physics (stiffness: 60, damping: 12, mass: 1.5)
+ * - 'instant': Zero-duration snap
  */
 export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   topWidth = 90,
@@ -52,14 +52,22 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   frameWidth = 5.5,
   frameDepth = 10,
   sillHeight = 4,
-  openAngle = 0,
+  openAngle: propOpenAngle,
   wireframe = false,
   unitScale = 0.01,
   showWall = true,
 }) => {
   const doorPivotRef = useRef<THREE.Group>(null)
 
-  const { wallColor } = useConfigStore()
+  // Door Hinge Spring Physics State
+  const currentAngleRef = useRef(0)
+  const velocityRef = useRef(0)
+
+  // Read door swing mechanics & physics settings from Zustand store
+  const { doorConfig, wallColor } = useConfigStore()
+  const { isDoorOpen, openAngle: storeOpenAngle, animationMode } = doorConfig
+
+  const openAngle = propOpenAngle ?? storeOpenAngle
 
   // Convert cm to Three.js world meters
   const s = unitScale
@@ -73,8 +81,32 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   const S_height = sillHeight * s
   const clearance = 0.004 // 4mm gap
 
-  // Convert openAngle degrees to radians
-  const openAngleRad = (openAngle * Math.PI) / 180
+  // Real-time 60FPS Frame Hinge Spring Solver
+  useFrame((_, delta) => {
+    if (!doorPivotRef.current) return
+
+    const targetRad = isDoorOpen ? (openAngle * Math.PI) / 180 : 0
+
+    if (animationMode === 'instant') {
+      currentAngleRef.current = targetRad
+      velocityRef.current = 0
+    } else {
+      // Spring physics: stiffness = 60, damping = 12, mass = 1.5
+      const stiffness = 60
+      const damping = 12
+      const mass = 1.5
+
+      const springForce = -stiffness * (currentAngleRef.current - targetRad)
+      const dampingForce = -damping * velocityRef.current
+      const acceleration = (springForce + dampingForce) / mass
+
+      const dt = Math.min(delta, 0.05) // Cap delta step
+      velocityRef.current += acceleration * dt
+      currentAngleRef.current += velocityRef.current * dt
+    }
+
+    doorPivotRef.current.rotation.y = currentAngleRef.current
+  })
 
   // -------------------------------------------------------------
   // Vector Mathematics for Frame & Door Panel Geometry
@@ -111,7 +143,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
   // 1. Procedural Door Panel Geometry
   // -------------------------------------------------------------
   const doorGeometry = useMemo(() => {
-    // Relative coordinates to the door hinge pivot point (Left edge: doorBL.x)
     const pivotX = doorBL.x
     const pivotY = doorBL.y
 
@@ -131,7 +162,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
       bevelThickness: 0.003,
     })
     geo.center()
-    // Align front/back depth so pivot point sits at origin in Z
     geo.translate((doorBR.x - doorBL.x) / 2, (doorTL.y - doorBL.y) / 2, 0)
     geo.computeVertexNormals()
     return geo
@@ -231,7 +261,6 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
     return geo
   }, [outerTL.x, outerTL.y, outerTR.x, outerTR.y, innerTR.x, innerTR.y, innerTL.x, innerTL.y, F_depth])
 
-  // Lockset Handle Position relative to door panel
   const handleHeight = (doorTL.y - doorBL.y) * 0.45
   const handleWidthOffset = (doorBR.x - doorBL.x) * 0.85
 
@@ -290,11 +319,10 @@ export const ParametricDoor: React.FC<ParametricDoorProps> = ({
         />
       </mesh>
 
-      {/* 5. Main Door Panel & Hardware with Left Hinge Pivot (Rotation-Y = openAngleRad) */}
+      {/* 5. Door Hinge Pivot Group (Rotated via useFrame Spring Solver) */}
       <group
         ref={doorPivotRef}
         position={[doorBL.x, doorBL.y, 0]}
-        rotation={[0, openAngleRad, 0]}
       >
         {/* Main Door Panel Geometry mapped directly to doorColor */}
         <mesh geometry={doorGeometry} castShadow receiveShadow>
