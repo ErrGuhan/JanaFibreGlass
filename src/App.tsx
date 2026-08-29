@@ -1,6 +1,6 @@
 import { Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, ContactShadows, Html } from '@react-three/drei'
+import { OrbitControls, Environment, ContactShadows } from '@react-three/drei'
 import { useConfigStore } from './store/useConfigStore'
 import { ParametricDoor } from './components/ParametricDoor'
 import { ConfigPanel } from './components/ConfigPanel'
@@ -10,23 +10,24 @@ import { ProductCategories } from './components/ProductCategories'
 import { PastWorkGallery } from './components/PastWorkGallery'
 import { MousePointer, ZoomIn, RotateCw, Loader2, Sparkles } from 'lucide-react'
 
-// Light-Theme HTML/CSS Fallback Component
-const LightCanvasLoader = () => (
-  <Html center>
-    <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-gray-200 text-slate-800 shadow-lg min-w-[200px]">
+// Pure HTML/CSS Suspense Fallback (Safe to render outside Canvas)
+const DOMCanvasLoader = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm z-20">
+    <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-white border border-gray-200 text-slate-800 shadow-md min-w-[200px]">
       <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       <span className="text-xs font-mono font-bold tracking-wider text-slate-700">
         Rendering 3D Studio...
       </span>
     </div>
-  </Html>
+  </div>
 )
 
 /**
  * App - Enterprise 3D Architectural Door Studio
  * Features:
- * 1. Grounding ContactShadows (position=[0,0,0], opacity=0.7, scale=10, blur=2.5, far=4) for high-end ambient occlusion where baseboards, frame & door meet the floor.
- * 2. Daytime studio lighting & warm architectural drywall wall background.
+ * 1. Fixed R3F fallback loader to use DOMCanvasLoader (eliminating "R3F: Hooks can only be used within the Canvas component!" error).
+ * 2. Grounding ContactShadows (position=[0,0,0], opacity=0.7, scale=10, blur=2.5, far=4) for high-end ambient occlusion where baseboards, frame & door meet the floor.
+ * 3. Daytime studio lighting & warm architectural drywall wall background.
  */
 export function App() {
   const [activeTab, setActiveTab] = useState('configurator')
@@ -45,7 +46,7 @@ export function App() {
               
               {/* 3D WebGL Canvas Layer */}
               <div className="relative flex-1 w-full h-full rounded-2xl overflow-hidden">
-                <Suspense fallback={<LightCanvasLoader />}>
+                <Suspense fallback={<DOMCanvasLoader />}>
                   <Canvas
                     shadows
                     camera={{ position: [2.6, 1.6, 3.2], fov: 45 }}
