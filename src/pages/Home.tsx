@@ -1,31 +1,59 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ShieldCheck, Sparkles, Sliders, CheckCircle2, Droplets, Wrench, Clock } from 'lucide-react'
+import { fetchSiteContent, DEFAULT_SITE_CONTENT } from '../utils/api'
+import type { SiteContentData } from '../utils/api'
 
 export const Home: React.FC = () => {
+  const [content, setContent] = useState<SiteContentData>(DEFAULT_SITE_CONTENT)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true)
+      const data = await fetchSiteContent()
+      setContent(data)
+      setIsLoading(false)
+    }
+    load()
+  }, [])
+
   return (
     <div className="space-y-16 py-8 md:py-16 font-sans">
       {/* 1. HERO SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Column: Headline & Action Buttons */}
+          {/* Left Column: Dynamic Headline & Action Buttons */}
           <div className="lg:col-span-6 space-y-6 text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               <span>Parametric FRP Door Manufacturing</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              Precision Engineered <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                Custom Doors
-              </span>
-            </h1>
+            {/* Dynamic Hero Headline with Tailwind Skeleton Loading */}
+            {isLoading ? (
+              <div className="space-y-3 animate-pulse">
+                <div className="h-10 bg-slate-200 rounded-xl w-3/4" />
+                <div className="h-10 bg-slate-200 rounded-xl w-1/2" />
+              </div>
+            ) : (
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                {content.heroHeadline}
+              </h1>
+            )}
 
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
-              Experience the next generation of architectural fiberglass doors. Tailored to your exact millimetric dimensions, 100% waterproof, termite-proof, and designed live in 3D.
-            </p>
+            {/* Dynamic Hero Subtext with Skeleton */}
+            {isLoading ? (
+              <div className="space-y-2 animate-pulse">
+                <div className="h-4 bg-slate-200 rounded w-full" />
+                <div className="h-4 bg-slate-200 rounded w-5/6" />
+              </div>
+            ) : (
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+                {content.heroSubtext}
+              </p>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
@@ -65,7 +93,6 @@ export const Home: React.FC = () => {
           {/* Right Column: Visual Card Showcase */}
           <div className="lg:col-span-6">
             <div className="relative rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 p-8 shadow-xl border border-slate-700 text-white overflow-hidden min-h-[420px] flex flex-col justify-between">
-              {/* Background Decorative Blur Circles */}
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-600/30 rounded-full blur-3xl" />
               <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-600/30 rounded-full blur-3xl" />
 
@@ -84,7 +111,6 @@ export const Home: React.FC = () => {
                 </p>
               </div>
 
-              {/* Graphic Feature Badges */}
               <div className="relative z-10 grid grid-cols-2 gap-3 pt-8">
                 <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 text-left">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Material</span>

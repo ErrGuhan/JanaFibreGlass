@@ -1,14 +1,30 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { MapPin, Phone, Mail, MessageCircle, ShieldCheck, Factory, Award, HelpCircle } from 'lucide-react'
+import { fetchSiteContent, DEFAULT_SITE_CONTENT } from '../utils/api'
+import type { SiteContentData } from '../utils/api'
 
 export const About: React.FC = () => {
+  const [content, setContent] = useState<SiteContentData>(DEFAULT_SITE_CONTENT)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      setIsLoading(true)
+      const data = await fetchSiteContent()
+      setContent(data)
+      setIsLoading(false)
+    }
+    load()
+  }, [])
+
   const handleWhatsAppChat = () => {
     const text = encodeURIComponent('Hello JANA FIBRE GLASS! I have an inquiry about custom FRP doors.')
-    window.open(`https://wa.me/916383236623?text=${text}`, '_blank')
+    const phoneClean = (content.contactPhone || '+916383236623').replace(/[^0-9]/g, '')
+    window.open(`https://wa.me/${phoneClean}?text=${text}`, '_blank')
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-10 text-left">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-10 text-left font-sans">
       {/* Page Header */}
       <div className="space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold">
@@ -49,23 +65,35 @@ export const About: React.FC = () => {
             </p>
           </div>
 
-          {/* Phone */}
+          {/* Dynamic Phone Number with Skeleton */}
           <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-gray-100">
             <div className="flex items-center gap-2 text-slate-900 font-bold">
               <Phone className="w-4 h-4 text-blue-600 shrink-0" />
               <span>Phone / Call</span>
             </div>
-            <p className="text-slate-600 font-mono text-sm font-semibold">+91 6383236623</p>
+            {isLoading ? (
+              <div className="h-5 bg-slate-200 rounded w-3/4 animate-pulse" />
+            ) : (
+              <p className="text-slate-600 font-mono text-sm font-semibold">
+                {content.contactPhone}
+              </p>
+            )}
             <p className="text-[11px] text-slate-400">Mon - Sat: 9:00 AM - 7:00 PM</p>
           </div>
 
-          {/* Email */}
+          {/* Dynamic Email Address with Skeleton */}
           <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-gray-100">
             <div className="flex items-center gap-2 text-slate-900 font-bold">
               <Mail className="w-4 h-4 text-blue-600 shrink-0" />
               <span>Email Address</span>
             </div>
-            <p className="text-slate-600 font-mono text-xs">info@janafibreglass.com</p>
+            {isLoading ? (
+              <div className="h-5 bg-slate-200 rounded w-full animate-pulse" />
+            ) : (
+              <p className="text-slate-600 font-mono text-xs">
+                {content.contactEmail}
+              </p>
+            )}
             <p className="text-[11px] text-slate-400">Response within 24 hours</p>
           </div>
         </div>
@@ -76,11 +104,11 @@ export const About: React.FC = () => {
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-5 rounded-xl shadow-sm flex items-center justify-center gap-2.5 w-full transition-all active:scale-[0.98] text-sm"
         >
           <MessageCircle className="w-5 h-5 fill-white" />
-          <span>Chat on WhatsApp (+91 6383236623)</span>
+          <span>Chat on WhatsApp ({content.contactPhone})</span>
         </button>
       </div>
 
-      {/* SECTION 2: ABOUT THE COMPANY */}
+      {/* SECTION 2: ABOUT THE COMPANY (Dynamic Text with Skeleton) */}
       <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -89,14 +117,17 @@ export const About: React.FC = () => {
           <h2 className="text-lg font-bold text-slate-900">About the Company</h2>
         </div>
 
-        <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3">
-          <p>
-            <strong>JANA FIBRE GLASS</strong> is a premier manufacturer specializing in advanced Fiber-Reinforced Polymer (FRP) composite doors, frames, and custom architectural elements. With over two decades of engineering excellence, we supply durable, high-impact door solutions for residential, commercial, industrial, and coastal installations across India.
-          </p>
-          <p>
-            Our state-of-the-art manufacturing facility combines precision resin-transfer molding with automated CNC dimensioning to produce doors that never rot, warp, or suffer from termite damage. Every product undergoes strict quality testing for structural integrity, water tightness, and fire retardancy.
-          </p>
-        </div>
+        {isLoading ? (
+          <div className="space-y-2.5 animate-pulse">
+            <div className="h-4 bg-slate-200 rounded w-full" />
+            <div className="h-4 bg-slate-200 rounded w-11/12" />
+            <div className="h-4 bg-slate-200 rounded w-4/5" />
+          </div>
+        ) : (
+          <div className="text-xs sm:text-sm text-slate-600 leading-relaxed space-y-3 whitespace-pre-line">
+            <p>{content.aboutUsText}</p>
+          </div>
+        )}
       </div>
 
       {/* SECTION 3: DISCLAIMERS & TERMS */}

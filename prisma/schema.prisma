@@ -53,3 +53,23 @@ model CustomerDocument {
   @@index([configId])
   @@map("customer_documents")
 }
+
+model SiteContent {
+  id           Int      @id @default(1)
+  heroHeadline String
+  heroSubtext  String
+  aboutUsText  String   @db.Text
+  contactPhone String
+  contactEmail String
+  updatedAt    DateTime @updatedAt
+
+  @@map("site_content")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+
+  @@map("admin_users")
+}
