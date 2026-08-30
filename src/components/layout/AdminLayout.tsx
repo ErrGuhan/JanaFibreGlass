@@ -13,6 +13,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import { registerSW } from 'virtual:pwa-register'
 import {
   syncOfflineOrders,
   getUnsyncedCount,
@@ -26,6 +27,13 @@ export const AdminLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
 
   useEffect(() => {
+    // Scoped Service Worker registration for Admin route
+    try {
+      registerSW({ immediate: true })
+    } catch (swErr) {
+      console.warn('PWA Service Worker registration notice:', swErr)
+    }
+
     checkSyncStatus()
 
     const handleOnline = async () => {

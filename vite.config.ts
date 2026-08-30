@@ -9,14 +9,15 @@ export default defineConfig({
     tailwindcss(),
     react(),
     VitePWA({
-      injectRegister: null, // Scoped manual registration only within Admin ProtectedRoute
+      injectRegister: false, // Scoped manual registration only when Admin route loads
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
         name: 'JANA Admin Studio',
         short_name: 'Admin Studio',
         description: 'Enterprise Admin Portal & Offline Order Studio for JANA FIBRE GLASS',
-        start_url: '/admin/dashboard',
+        scope: '/admin/',
+        start_url: '/admin/pos',
         display: 'standalone',
         background_color: '#f8fafc',
         theme_color: '#0284c7',
