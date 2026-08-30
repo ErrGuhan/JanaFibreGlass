@@ -7,12 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "vercel-build": "npx prisma generate && tsc -b && vite build",
-    "postinstall": "prisma generate",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@prisma/client": "^7.10.0",
+    "@prisma/client": "6.4.0",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "@supabase/supabase-js": "^2.112.4",
@@ -24,7 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "localforage": "^1.10.0",
     "lucide-react": "^1.37.0",
-    "prisma": "^8.0.0-rc.12",
+    "prisma": "6.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3",
