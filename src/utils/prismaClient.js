@@ -5,7 +5,7 @@ const connectionUrl =
   process.env.DATABASE_URL ||
   'postgresql://postgres.qoarqrajcenjkcyjzqna:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true'
 
-const globalForPrisma = typeof window === 'undefined' ? global : globalThis
+const globalForPrisma = typeof window === 'undefined' ? globalThis : {}
 
 export const prisma =
   globalForPrisma.prisma ||

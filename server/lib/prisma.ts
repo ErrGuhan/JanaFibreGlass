@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 
-// Read primary Vercel Postgres variables or fallback to standard DATABASE_URL / DIRECT_URL
+// Read Vercel connection pooling URL with fallback to DATABASE_URL
 const connectionUrl =
   process.env.POSTGRES_PRISMA_URL ||
   process.env.DATABASE_URL ||
@@ -13,6 +13,7 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
     datasources: {
       db: {
         url: connectionUrl,

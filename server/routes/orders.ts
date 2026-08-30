@@ -66,8 +66,20 @@ router.post('/api/admin/orders', verifyAdmin, async (req: Request, res: Response
         documents: configRecord.documents,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error saving order on server:', error)
+
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1002'
+    ) {
+      return res.status(503).json({
+        error: 'Database connection failed',
+        details: error?.message || 'PostgreSQL database server is unreachable.',
+      })
+    }
+
     return res.status(500).json({ error: 'Server error while saving order.' })
   }
 })
@@ -83,8 +95,20 @@ router.get('/api/admin/orders', verifyAdmin, async (_req: Request, res: Response
       include: { documents: true },
     })
     return res.status(200).json({ data: orders })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching orders:', error)
+
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1002'
+    ) {
+      return res.status(503).json({
+        error: 'Database connection failed',
+        details: error?.message || 'PostgreSQL database server is unreachable.',
+      })
+    }
+
     return res.status(500).json({ error: 'Failed to fetch orders.' })
   }
 })

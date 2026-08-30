@@ -33,8 +33,23 @@ router.get('/api/content', async (_req: Request, res: Response) => {
     }
 
     return res.status(200).json(content)
-  } catch (error) {
-    console.error('Error fetching site content:', error)
+  } catch (error: any) {
+    console.error('Error fetching site content from database:', error)
+    
+    // Check if error is database connectivity failure
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1002'
+    ) {
+      return res.status(503).json({
+        error: 'Database connection failed',
+        details: error?.message || 'Database unreachable',
+        fallback: DEFAULT_CONTENT,
+      })
+    }
+
+    // Fallback response for minor DB errors
     return res.status(200).json(DEFAULT_CONTENT)
   }
 })
@@ -70,8 +85,20 @@ router.put('/api/content', verifyAdmin, async (req: Request, res: Response) => {
       message: 'Site content updated successfully.',
       data: updated,
     })
-  } catch (error) {
-    console.error('Error updating site content:', error)
+  } catch (error: any) {
+    console.error('Error updating site content in database:', error)
+
+    if (
+      error?.name === 'PrismaClientInitializationError' ||
+      error?.code === 'P1001' ||
+      error?.code === 'P1002'
+    ) {
+      return res.status(503).json({
+        error: 'Database connection failed',
+        details: error?.message || 'Database server is currently unavailable.',
+      })
+    }
+
     return res.status(500).json({
       error: 'Failed to update site content in database.',
     })

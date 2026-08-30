@@ -8,6 +8,7 @@ import {
   Mail,
   MessageCircle,
   Info,
+  WifiOff,
 } from 'lucide-react'
 import { fetchSiteContent, updateSiteContent } from '../../utils/api'
 import type { SiteContentData } from '../../utils/api'
@@ -23,8 +24,10 @@ export const ContentEditor: React.FC = () => {
   const [whatsappNumber, setWhatsappNumber] = useState<string>('+916383236623')
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [saveSuccess, setSaveSuccess] = useState<boolean>(false)
-  const [error, setError] = useState<string>('')
+  const [statusAlert, setStatusAlert] = useState<{
+    type: 'success' | '503_warning' | 'error'
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     loadData()
@@ -32,14 +35,24 @@ export const ContentEditor: React.FC = () => {
 
   const loadData = async () => {
     setIsLoading(true)
-    setError('')
+    setStatusAlert(null)
     try {
       const data = await fetchSiteContent()
       setFormData(data)
       setWhatsappNumber(data.contactPhone || '+916383236623')
+
+      if (data.isFallback) {
+        setStatusAlert({
+          type: '503_warning',
+          message: 'Database Connection Issue: Displaying locally cached website content.',
+        })
+      }
     } catch (err) {
       console.error(err)
-      setError('Failed to load website content.')
+      setStatusAlert({
+        type: 'error',
+        message: 'Failed to load website content.',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -55,16 +68,29 @@ export const ContentEditor: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    setError('')
-    setSaveSuccess(false)
+    setStatusAlert(null)
 
     try {
-      await updateSiteContent(formData)
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 4000)
+      const result = await updateSiteContent(formData)
+
+      if (result.is503) {
+        setStatusAlert({
+          type: '503_warning',
+          message: 'Experiencing connection issues. Saved website changes locally to this device.',
+        })
+      } else {
+        setStatusAlert({
+          type: 'success',
+          message: 'Website changes saved successfully! Public website updated.',
+        })
+        setTimeout(() => setStatusAlert(null), 4000)
+      }
     } catch (err) {
       console.error(err)
-      setError('Failed to save website content to database.')
+      setStatusAlert({
+        type: 'error',
+        message: 'Failed to save website content.',
+      })
     } finally {
       setIsSaving(false)
     }
@@ -92,18 +118,25 @@ export const ContentEditor: React.FC = () => {
         </p>
       </div>
 
-      {/* Success / Error Alerts */}
-      {saveSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2.5 shadow-2xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>Website changes saved successfully! Public site is updated.</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2.5 shadow-2xs">
-          <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-          <span>{error}</span>
+      {/* Status Alerts (Success / 503 Warning / Error) */}
+      {statusAlert && (
+        <div
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2.5 shadow-2xs ${
+            statusAlert.type === '503_warning'
+              ? 'bg-amber-50 border border-amber-200 text-amber-800'
+              : statusAlert.type === 'success'
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}
+        >
+          {statusAlert.type === '503_warning' ? (
+            <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
+          ) : statusAlert.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          )}
+          <span>{statusAlert.message}</span>
         </div>
       )}
 

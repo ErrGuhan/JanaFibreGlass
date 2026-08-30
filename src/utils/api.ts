@@ -6,6 +6,7 @@ export interface SiteContentData {
   contactPhone: string
   contactEmail: string
   updatedAt?: string
+  isFallback?: boolean
 }
 
 export const API_BASE = (import.meta.env.VITE_API_URL as string) || ''
@@ -26,15 +27,27 @@ export const DEFAULT_SITE_CONTENT: SiteContentData = {
 export async function fetchSiteContent(): Promise<SiteContentData> {
   try {
     const res = await fetch(`${API_BASE}/api/content`)
+    
+    if (res.status === 503) {
+      console.warn('Backend returned HTTP 503 (Database unreachable). Using cached site content.')
+      const cached = getCachedContent()
+      return { ...cached, isFallback: true }
+    }
+
     if (res.ok) {
       const data = await res.json()
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
       return data
     }
   } catch (err) {
-    console.warn('API /api/content unavailable, using local cache:', err)
+    console.warn('API /api/content fetch failed, falling back to local cache:', err)
   }
 
+  const cached = getCachedContent()
+  return { ...cached, isFallback: true }
+}
+
+function getCachedContent(): SiteContentData {
   const cached = localStorage.getItem(STORAGE_KEY)
   if (cached) {
     try {
@@ -46,7 +59,7 @@ export async function fetchSiteContent(): Promise<SiteContentData> {
   return DEFAULT_SITE_CONTENT
 }
 
-export async function updateSiteContent(payload: SiteContentData): Promise<SiteContentData> {
+export async function updateSiteContent(payload: SiteContentData): Promise<{ data: SiteContentData; is503?: boolean }> {
   const token = localStorage.getItem('adminToken')
   try {
     const res = await fetch(`${API_BASE}/api/content`, {
@@ -57,18 +70,25 @@ export async function updateSiteContent(payload: SiteContentData): Promise<SiteC
       },
       body: JSON.stringify(payload),
     })
+
+    if (res.status === 503) {
+      console.warn('Database returned 503 Service Unavailable during PUT.')
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
+      return { data: payload, is503: true }
+    }
+
     if (res.ok) {
       const result = await res.json()
       const data = result.data || result
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-      return data
+      return { data }
     }
   } catch (err) {
-    console.warn('API /api/content PUT unavailable, updating local storage:', err)
+    console.warn('API /api/content PUT network failure, updating local storage:', err)
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload))
-  return payload
+  return { data: payload, is503: true }
 }
 
 export async function loginAdmin(username: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
