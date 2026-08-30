@@ -1,5 +1,6 @@
 import localforage from 'localforage'
 import { supabase } from './supabaseClient'
+import { API_BASE } from './api'
 
 export interface OrderPayload {
   id?: string
@@ -123,7 +124,7 @@ export async function syncOfflineOrders(): Promise<{ syncedCount: number; remain
       }
 
       try {
-        const response = await fetch('/api/admin/orders', {
+        const response = await fetch(`${API_BASE}/api/admin/orders`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

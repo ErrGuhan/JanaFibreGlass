@@ -8,6 +8,8 @@ export interface SiteContentData {
   updatedAt?: string
 }
 
+export const API_BASE = (import.meta.env.VITE_API_URL as string) || ''
+
 const STORAGE_KEY = 'jana_site_content'
 
 export const DEFAULT_SITE_CONTENT: SiteContentData = {
@@ -23,7 +25,7 @@ export const DEFAULT_SITE_CONTENT: SiteContentData = {
 
 export async function fetchSiteContent(): Promise<SiteContentData> {
   try {
-    const res = await fetch('/api/content')
+    const res = await fetch(`${API_BASE}/api/content`)
     if (res.ok) {
       const data = await res.json()
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
@@ -47,7 +49,7 @@ export async function fetchSiteContent(): Promise<SiteContentData> {
 export async function updateSiteContent(payload: SiteContentData): Promise<SiteContentData> {
   const token = localStorage.getItem('adminToken')
   try {
-    const res = await fetch('/api/content', {
+    const res = await fetch(`${API_BASE}/api/content`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +73,7 @@ export async function updateSiteContent(payload: SiteContentData): Promise<SiteC
 
 export async function loginAdmin(username: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    const res = await fetch('/api/admin/login', {
+    const res = await fetch(`${API_BASE}/api/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),

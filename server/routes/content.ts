@@ -1,10 +1,9 @@
 import express, { Request, Response } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../lib/prisma'
 import jwt from 'jsonwebtoken'
 import { verifyAdmin, JWT_SECRET } from '../middleware/auth'
 
 const router = express.Router()
-const prisma = new PrismaClient()
 
 const DEFAULT_CONTENT = {
   id: 1,
