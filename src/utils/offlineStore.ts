@@ -1,4 +1,5 @@
 import localforage from 'localforage'
+import { supabase } from './supabaseClient'
 
 export interface OrderPayload {
   id?: string
@@ -13,6 +14,8 @@ export interface OrderPayload {
   notes?: string
   status?: string
   createdAt?: string
+  files?: File[]
+  documentUrls?: string[]
 }
 
 // Initialize dedicated localforage instance named 'offlineOrders'
@@ -70,6 +73,7 @@ export async function getUnsyncedCount(): Promise<number> {
 
 /**
  * Sync offline orders from localforage to backend Express API /api/admin/orders.
+ * Handles file uploads to Supabase storage ('customer-documents') before POSTing to Express backend.
  * Removes item from localforage ONLY if server returns 200/201 OK.
  */
 export async function syncOfflineOrders(): Promise<{ syncedCount: number; remainingCount: number }> {
@@ -82,11 +86,46 @@ export async function syncOfflineOrders(): Promise<{ syncedCount: number; remain
       const order = await offlineOrders.getItem<OrderPayload>(key)
       if (!order) continue
 
+      let uploadedUrls: string[] = order.documentUrls || []
+
+      // Prompt 3: Cloud Storage Upload Sequence via Supabase
+      if (order.files && order.files.length > 0) {
+        for (const file of order.files) {
+          try {
+            const fileName = `${Date.now()}_${file.name || 'document.pdf'}`
+            const filePath = `orders/${order.id || 'order'}/${fileName}`
+
+            const { data, error } = await supabase.storage
+              .from('customer-documents')
+              .upload(filePath, file, { upsert: true })
+
+            if (!error && data) {
+              const { data: publicUrlData } = supabase.storage
+                .from('customer-documents')
+                .getPublicUrl(data.path)
+
+              if (publicUrlData?.publicUrl) {
+                uploadedUrls.push(publicUrlData.publicUrl)
+              }
+            }
+          } catch (uploadErr) {
+            console.warn('Supabase storage file upload warning:', uploadErr)
+          }
+        }
+      }
+
+      // Attach retrieved public URLs to order payload before POSTing to Express backend
+      const payloadToSend = {
+        ...order,
+        documentUrls: uploadedUrls,
+        files: undefined, // Strip raw File object before sending JSON payload
+      }
+
       try {
         const response = await fetch('/api/admin/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(order),
+          body: JSON.stringify(payloadToSend),
         })
 
         if (response.ok) {
