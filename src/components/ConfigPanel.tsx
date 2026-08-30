@@ -23,7 +23,7 @@ export interface ColorFinishOption {
 }
 
 export const FINISH_SWATCHES: ColorFinishOption[] = [
-  { name: 'Light Oak', hex: '#d4a373' }, // Default
+  { name: 'Light Oak', hex: '#d4a373' },
   { name: 'Dark Walnut', hex: '#3f2e21' },
   { name: 'Matte Black', hex: '#18181b' },
   { name: 'Pearl White', hex: '#f8fafc', borderClass: 'border-gray-300' },
@@ -44,13 +44,6 @@ export interface ConfigPanelProps {
   className?: string
 }
 
-/**
- * ConfigPanel - Streamlined Light-Theme Enterprise White Card Design
- * Features:
- * 1. Tabbed "Guided Flow" Navigation ("1. Size" and "2. Finish").
- * 2. Floating point decimal precision (step 0.1, steppers increment/decrement by 0.5 cm).
- * 3. Fixed bottom bar with high-contrast WhatsApp Inquiry button.
- */
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   width: propWidth,
   onWidthChange,
@@ -69,7 +62,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'size' | 'finish'>('size')
   const [isSaved, setIsSaved] = useState(false)
 
-  // Sync with global Zustand store
   const store = useConfigStore()
 
   const width = propWidth ?? store.doorConfig.bottomWidth
@@ -86,7 +78,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
     return Math.round(clamped * 10) / 10
   }
 
-  // Stepper handlers (0.5 cm increments)
   const handleWidthChange = (val: number) => {
     const clamped = clamp(val, 70, 120)
     if (onWidthChange) onWidthChange(clamped)
@@ -122,7 +113,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
     FINISH_SWATCHES.find((s) => s.hex.toLowerCase() === currentColor.toLowerCase()) ||
     FINISH_SWATCHES[0]
 
-  // WhatsApp Inquiry Handler
   const handleWhatsAppInquiry = () => {
     sendWhatsAppInquiry({
       width,
@@ -141,17 +131,17 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   }
 
   return (
-    <div className={`w-full transition-all duration-300 select-none ${className}`}>
-      {/* Main White Card Container */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden text-slate-800">
+    <div className={`w-full transition-all duration-300 select-none pb-24 md:pb-0 ${className}`}>
+      {/* Right side control panel: bg-white border-l border-gray-100 shadow-2xl rounded-2xl */}
+      <div className="bg-white border-l border-gray-100 shadow-2xl rounded-2xl overflow-hidden text-slate-800">
         
-        {/* Top Header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
               <Sliders className="w-4 h-4" />
             </div>
-            <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+            <h2 className="text-sm font-extrabold text-slate-900 tracking-tight">
               Door Configurator
             </h2>
           </div>
@@ -159,39 +149,36 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            title={isCollapsed ? 'Expand Configuration' : 'Collapse Configuration'}
           >
-            {isCollapsed ? (
-              <ChevronDown className="w-5 h-5" />
-            ) : (
-              <ChevronUp className="w-5 h-5" />
-            )}
+            {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Tab Navigation ("1. Size" and "2. Finish") */}
+        {/* PROMPT 3: PILL-SHAPED TAB NAVIGATION */}
         {!isCollapsed && (
-          <div className="flex border-b border-gray-100 bg-slate-50/50">
-            <button
-              onClick={() => setActiveTab('size')}
-              className={`flex-1 py-3 px-4 text-center text-xs transition-all ${
-                activeTab === 'size'
-                  ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
-                  : 'text-slate-400 hover:text-slate-600 font-medium'
-              }`}
-            >
-              1. Size
-            </button>
-            <button
-              onClick={() => setActiveTab('finish')}
-              className={`flex-1 py-3 px-4 text-center text-xs transition-all ${
-                activeTab === 'finish'
-                  ? 'border-b-2 border-blue-600 text-blue-600 font-bold'
-                  : 'text-slate-400 hover:text-slate-600 font-medium'
-              }`}
-            >
-              2. Finish
-            </button>
+          <div className="p-3 border-b border-gray-100 bg-slate-50/50 flex justify-center">
+            <div className="bg-slate-200/70 p-1 rounded-full flex gap-1 w-full max-w-xs">
+              <button
+                onClick={() => setActiveTab('size')}
+                className={`flex-1 py-2 px-6 rounded-full text-xs font-bold transition-all ${
+                  activeTab === 'size'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 font-semibold'
+                }`}
+              >
+                1. Size
+              </button>
+              <button
+                onClick={() => setActiveTab('finish')}
+                className={`flex-1 py-2 px-6 rounded-full text-xs font-bold transition-all ${
+                  activeTab === 'finish'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 font-semibold'
+                }`}
+              >
+                2. Finish
+              </button>
+            </div>
           </div>
         )}
 
@@ -199,29 +186,30 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
         {!isCollapsed && (
           <div className="p-5 space-y-6">
             
-            {/* TAB 1: SIZE (Dimensions with float / 0.5 cm steppers) */}
+            {/* TAB 1: SIZE */}
             {activeTab === 'size' && (
-              <div className="space-y-3.5">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                   <Ruler className="w-4 h-4 text-blue-600" />
                   <span>Dimensions (cm)</span>
                 </div>
 
                 {/* 1. Width Stepper */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-gray-200 space-y-2">
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-800">Width</span>
-                    <span className="text-xs text-slate-500 font-mono">70.0 - 120.0 cm</span>
+                    <span className="font-bold text-slate-800">Width</span>
+                    <span className="text-[11px] text-slate-400 font-mono">70.0 - 120.0 cm</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => handleWidthChange(width - 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Decrease Width by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-gray-200 px-3 py-1.5 shadow-xs">
+                    
+                    {/* Fully rounded stepper input */}
+                    <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
                       <input
                         type="number"
                         min="70"
@@ -229,15 +217,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                         step="0.1"
                         value={width}
                         onChange={(e) => handleWidthChange(parseFloat(e.target.value))}
-                        onBlur={(e) => handleWidthChange(parseFloat(e.target.value))}
-                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="font-mono text-slate-500 text-xs font-bold">cm</span>
+                      <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
                     </div>
+
                     <button
                       onClick={() => handleWidthChange(width + 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Increase Width by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -245,20 +232,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
 
                 {/* 2. Height (Left) Stepper */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-gray-200 space-y-2">
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-800">Height (Left)</span>
-                    <span className="text-xs text-slate-500 font-mono">180.0 - 250.0 cm</span>
+                    <span className="font-bold text-slate-800">Height (Left)</span>
+                    <span className="text-[11px] text-slate-400 font-mono">180.0 - 250.0 cm</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => handleHeightLeftChange(heightLeft - 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Decrease Left Height by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-gray-200 px-3 py-1.5 shadow-xs">
+                    
+                    <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
                       <input
                         type="number"
                         min="180"
@@ -266,15 +253,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                         step="0.1"
                         value={heightLeft}
                         onChange={(e) => handleHeightLeftChange(parseFloat(e.target.value))}
-                        onBlur={(e) => handleHeightLeftChange(parseFloat(e.target.value))}
-                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="font-mono text-slate-500 text-xs font-bold">cm</span>
+                      <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
                     </div>
+
                     <button
                       onClick={() => handleHeightLeftChange(heightLeft + 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Increase Left Height by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -282,20 +268,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
 
                 {/* 3. Height (Right) Stepper */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-gray-200 space-y-2">
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-800">Height (Right)</span>
-                    <span className="text-xs text-slate-500 font-mono">180.0 - 250.0 cm</span>
+                    <span className="font-bold text-slate-800">Height (Right)</span>
+                    <span className="text-[11px] text-slate-400 font-mono">180.0 - 250.0 cm</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => handleHeightRightChange(heightRight - 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Decrease Right Height by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-gray-200 px-3 py-1.5 shadow-xs">
+                    
+                    <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
                       <input
                         type="number"
                         min="180"
@@ -303,15 +289,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                         step="0.1"
                         value={heightRight}
                         onChange={(e) => handleHeightRightChange(parseFloat(e.target.value))}
-                        onBlur={(e) => handleHeightRightChange(parseFloat(e.target.value))}
-                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="font-mono text-slate-500 text-xs font-bold">cm</span>
+                      <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
                     </div>
+
                     <button
                       onClick={() => handleHeightRightChange(heightRight + 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Increase Right Height by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -319,20 +304,20 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                 </div>
 
                 {/* 4. Thickness Stepper */}
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-gray-200 space-y-2">
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-800">Thickness</span>
-                    <span className="text-xs text-slate-500 font-mono">3.0 - 8.0 cm</span>
+                    <span className="font-bold text-slate-800">Thickness</span>
+                    <span className="text-[11px] text-slate-400 font-mono">3.0 - 8.0 cm</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <button
                       onClick={() => handleThicknessChange(thickness - 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Decrease Thickness by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-gray-200 px-3 py-1.5 shadow-xs">
+                    
+                    <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
                       <input
                         type="number"
                         min="3.0"
@@ -340,15 +325,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                         step="0.1"
                         value={thickness}
                         onChange={(e) => handleThicknessChange(parseFloat(e.target.value))}
-                        onBlur={(e) => handleThicknessChange(parseFloat(e.target.value))}
-                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="font-mono text-slate-500 text-xs font-bold">cm</span>
+                      <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
                     </div>
+
                     <button
                       onClick={() => handleThicknessChange(thickness + 0.5)}
-                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
-                      title="Increase Thickness by 0.5 cm"
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -357,23 +341,21 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               </div>
             )}
 
-            {/* TAB 2: FINISH (Swatches & Interaction) */}
+            {/* TAB 2: FINISH */}
             {activeTab === 'finish' && (
               <div className="space-y-6">
-                {/* SECTION 1: FINISH SWATCHES */}
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                       <Palette className="w-4 h-4 text-blue-600" />
                       <span>Door Finish</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-700">
+                    <span className="text-xs font-bold text-slate-800">
                       {activeFinishObj.name}
                     </span>
                   </div>
 
-                  {/* Round Color Swatches */}
-                  <div className="flex items-center justify-around p-3.5 rounded-xl bg-slate-50 border border-gray-200">
+                  <div className="flex items-center justify-around p-4 rounded-2xl bg-slate-50/80 border border-gray-100">
                     {FINISH_SWATCHES.map((swatch) => {
                       const isSelected =
                         currentColor.toLowerCase() === swatch.hex.toLowerCase()
@@ -383,19 +365,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                           key={swatch.name}
                           onClick={() => handleFinishSelect(swatch)}
                           className="group flex flex-col items-center gap-1.5 transition-all transform active:scale-95"
-                          title={swatch.name}
                         >
                           <div
                             className={`w-9 h-9 rounded-full shadow-xs transition-all flex items-center justify-center ${
                               isSelected
-                                ? 'ring-2 ring-offset-2 ring-blue-500 scale-105'
+                                ? 'ring-2 ring-offset-2 ring-slate-900 scale-105'
                                 : `${swatch.borderClass || 'border border-gray-300'} hover:scale-105`
                             }`}
                             style={{ backgroundColor: swatch.hex }}
                           />
                           <span
-                            className={`text-[11px] font-medium ${
-                              isSelected ? 'text-blue-600 font-bold' : 'text-slate-500'
+                            className={`text-[11px] font-semibold ${
+                              isSelected ? 'text-slate-900 font-bold' : 'text-slate-500'
                             }`}
                           >
                             {swatch.name}
@@ -406,20 +387,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                 </div>
 
-                {/* SECTION 2: ENVIRONMENT CONTEXT */}
                 <div className="space-y-3.5 pt-3 border-t border-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                       <Home className="w-4 h-4 text-blue-600" />
                       <span>Environment Context</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-700">
+                    <span className="text-xs font-bold text-slate-800">
                       {store.wallColorName}
                     </span>
                   </div>
 
-                  {/* Wall Color Swatches */}
-                  <div className="flex items-center justify-around p-3.5 rounded-xl bg-slate-50 border border-gray-200">
+                  <div className="flex items-center justify-around p-4 rounded-2xl bg-slate-50/80 border border-gray-100">
                     {WALL_COLORS.map((wSwatch) => {
                       const isSelected =
                         wallColor.toLowerCase() === wSwatch.hex.toLowerCase()
@@ -429,19 +408,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                           key={wSwatch.name}
                           onClick={() => store.setWallColor(wSwatch.hex, wSwatch.name)}
                           className="group flex flex-col items-center gap-1 transition-all transform active:scale-95"
-                          title={wSwatch.name}
                         >
                           <div
                             className={`w-8 h-8 rounded-full shadow-xs transition-all flex items-center justify-center ${
                               isSelected
-                                ? 'ring-2 ring-offset-2 ring-blue-500 scale-105'
+                                ? 'ring-2 ring-offset-2 ring-slate-900 scale-105'
                                 : 'border border-gray-300 hover:scale-105'
                             }`}
                             style={{ backgroundColor: wSwatch.hex }}
                           />
                           <span
-                            className={`text-[10px] font-medium ${
-                              isSelected ? 'text-blue-600 font-bold' : 'text-slate-500'
+                            className={`text-[10px] font-semibold ${
+                              isSelected ? 'text-slate-900 font-bold' : 'text-slate-500'
                             }`}
                           >
                             {wSwatch.name.split(' ')[0]}
@@ -452,16 +430,14 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                 </div>
 
-                {/* SECTION 3: INTERACTION & DOOR SWING */}
                 <div className="space-y-3 pt-3 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                     <RotateCw className="w-4 h-4 text-blue-600" />
-                    <span>Interaction & Door Swing</span>
+                    <span>Door Panel Swing</span>
                   </div>
 
-                  {/* Clean White Card "Open Door Panel" Toggle Switch */}
-                  <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-gray-200">
-                    <span className="text-xs font-semibold text-slate-800">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/80 border border-gray-100">
+                    <span className="text-xs font-bold text-slate-800">
                       Open Door Panel
                     </span>
                     <button
@@ -481,32 +457,35 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               </div>
             )}
 
-            {/* FIXED BOTTOM ACTION BUTTONS (Always visible) */}
-            <div className="pt-3 border-t border-gray-100 flex flex-col gap-2.5">
-              <button
-                onClick={handleWhatsAppInquiry}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-5 rounded-xl shadow-sm flex items-center justify-center gap-2 w-full transition-all"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>Inquire on WhatsApp</span>
-              </button>
-
-              <button
-                onClick={handleSaveDesign}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm transition-all border border-gray-200 shadow-xs"
-              >
-                {isSaved ? (
-                  <Check className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <Bookmark className="w-4 h-4 text-slate-500" />
-                )}
-                <span>{isSaved ? 'Saved!' : 'Save'}</span>
-              </button>
-            </div>
+            {/* Save Design Button */}
+            <button
+              onClick={handleSaveDesign}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all border border-gray-200 shadow-xs"
+            >
+              {isSaved ? (
+                <Check className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <Bookmark className="w-4 h-4 text-slate-500" />
+              )}
+              <span>{isSaved ? 'Design Saved!' : 'Save Design Specs'}</span>
+            </button>
 
           </div>
         )}
+
       </div>
+
+      {/* PROMPT 3: STICKY GLASSMORPHIC FOOTER CONTAINER FOR WHATSAPP BUTTON */}
+      <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-gray-100 md:relative md:bg-transparent md:border-none md:p-0 z-40 shadow-lg md:shadow-none">
+        <button
+          onClick={handleWhatsAppInquiry}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2.5 w-full transition-all active:scale-[0.98] text-sm"
+        >
+          <MessageCircle className="w-5 h-5 fill-white" />
+          <span>Inquire on WhatsApp</span>
+        </button>
+      </div>
+
     </div>
   )
 }
