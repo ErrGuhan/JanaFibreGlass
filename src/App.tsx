@@ -1,179 +1,31 @@
-import { Suspense, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Environment, ContactShadows } from '@react-three/drei'
-import { useConfigStore } from './store/useConfigStore'
-import { ParametricDoor } from './components/ParametricDoor'
-import { ConfigPanel } from './components/ConfigPanel'
-import { DashboardLayout } from './components/DashboardLayout'
-import { SavedConfigurations } from './components/SavedConfigurations'
-import { ProductCategories } from './components/ProductCategories'
-import { PastWorkGallery } from './components/PastWorkGallery'
-import { MousePointer, ZoomIn, RotateCw, Loader2, Sparkles } from 'lucide-react'
-
-// Pure HTML/CSS Suspense Fallback (Safe to render outside Canvas)
-const DOMCanvasLoader = () => (
-  <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm z-20">
-    <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-white border border-gray-200 text-slate-800 shadow-md min-w-[200px]">
-      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      <span className="text-xs font-mono font-bold tracking-wider text-slate-700">
-        Rendering 3D Studio...
-      </span>
-    </div>
-  </div>
-)
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { MainLayout } from './components/layout/MainLayout'
+import { Home } from './pages/Home'
+import { Products } from './pages/Products'
+import { StudioPage } from './pages/StudioPage'
+import { About } from './pages/About'
 
 /**
- * App - Enterprise 3D Architectural Door Studio
- * Features:
- * 1. Fixed R3F fallback loader to use DOMCanvasLoader (eliminating "R3F: Hooks can only be used within the Canvas component!" error).
- * 2. Grounding ContactShadows (position=[0,0,0], opacity=0.7, scale=10, blur=2.5, far=4) for high-end ambient occlusion where baseboards, frame & door meet the floor.
- * 3. Daytime studio lighting & warm architectural drywall wall background.
+ * App - Multi-Page Routing Setup with React Router DOM
+ * Routes:
+ * - /         -> Home (Landing page with Hero, benefits, CTA)
+ * - /products -> Products (Product Catalog Grid)
+ * - /studio   -> 3D Studio (Interactive 3D Configurator Studio)
+ * - /about    -> About (Company info, Contact Us, Disclaimers)
  */
 export function App() {
-  const [activeTab, setActiveTab] = useState('configurator')
-  const { doorConfig, color, wireframe } = useConfigStore()
-
   return (
-    <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
-      {activeTab === 'configurator' && (
-        <div className="space-y-6">
-          
-          {/* Main 2-Column Responsive Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            
-            {/* COLUMN 1: Cleaned Light-Theme 3D Canvas Container Card (lg:col-span-7 xl:col-span-8) */}
-            <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 relative h-[560px] sm:h-[640px] lg:h-[720px] overflow-hidden flex flex-col">
-              
-              {/* 3D WebGL Canvas Layer */}
-              <div className="relative flex-1 w-full h-full rounded-2xl overflow-hidden">
-                <Suspense fallback={<DOMCanvasLoader />}>
-                  <Canvas
-                    shadows
-                    camera={{ position: [2.6, 1.6, 3.2], fov: 45 }}
-                    dpr={[1, 1.5]}
-                    gl={{
-                      powerPreference: 'high-performance',
-                      antialias: false,
-                      preserveDrawingBuffer: true,
-                    }}
-                    className="cursor-grab active:cursor-grabbing"
-                  >
-                    {/* Background matching Tailwind #f8fafc slate-50 seamlessly */}
-                    <color attach="background" args={['#f8fafc']} />
-
-                    {/* Daytime Studio Lighting Setup */}
-                    <ambientLight intensity={0.7} />
-                    <directionalLight
-                      position={[5, 10, 5]}
-                      intensity={1.5}
-                      castShadow
-                      shadow-mapSize-width={1024}
-                      shadow-mapSize-height={1024}
-                      shadow-bias={-0.0001}
-                    />
-                    <directionalLight position={[-5, 5, 5]} intensity={0.6} color="#ffffff" />
-                    <directionalLight position={[0, -2, 4]} intensity={0.3} color="#f8fafc" />
-
-                    {/* Environment City Preset (Daytime Studio Light) */}
-                    <Environment preset="city" environmentIntensity={1.0} resolution={256} />
-
-                    {/* Procedural Parametric 3D Door & Room Wall with Baseboards */}
-                    <ParametricDoor
-                      topWidth={doorConfig.topWidth}
-                      bottomWidth={doorConfig.bottomWidth}
-                      leftHeight={doorConfig.leftHeight}
-                      rightHeight={doorConfig.rightHeight}
-                      thickness={doorConfig.thickness}
-                      doorColor={color}
-                      wireframe={wireframe}
-                    />
-
-                    {/* Grounding Ambient Occlusion Contact Shadow */}
-                    <ContactShadows
-                      position={[0, 0, 0]}
-                      opacity={0.7}
-                      scale={10}
-                      blur={2.5}
-                      far={4}
-                      resolution={512}
-                      color="#000000"
-                    />
-
-                    {/* Orbit Controls */}
-                    <OrbitControls
-                      makeDefault
-                      enableDamping
-                      dampingFactor={0.06}
-                      minDistance={1.2}
-                      maxDistance={8}
-                      maxPolarAngle={Math.PI / 2 + 0.05}
-                      target={[0, 1.0, 0]}
-                    />
-                  </Canvas>
-                </Suspense>
-
-                {/* Minimalist Controls Pill HUD (Bottom Left inside canvas card) */}
-                <div className="absolute bottom-4 left-4 z-10 hidden sm:block pointer-events-none">
-                  <div className="bg-white/85 backdrop-blur-md border border-gray-200 px-3.5 py-1.5 rounded-full flex items-center gap-3 text-[11px] text-slate-600 shadow-xs pointer-events-auto">
-                    <div className="flex items-center gap-1 text-slate-800">
-                      <MousePointer className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Rotate</span>
-                    </div>
-                    <div className="h-3 w-px bg-gray-200" />
-                    <div className="flex items-center gap-1 text-slate-800">
-                      <ZoomIn className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Zoom</span>
-                    </div>
-                    <div className="h-3 w-px bg-gray-200" />
-                    <div className="flex items-center gap-1 text-slate-800">
-                      <RotateCw className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Pan</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* COLUMN 2: Streamlined White-Card Configurator Panel (lg:col-span-5 xl:col-span-4) */}
-            <div className="lg:col-span-5 xl:col-span-4">
-              <ConfigPanel />
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* Other Tabs */}
-      {activeTab === 'saved' && <SavedConfigurations />}
-      {activeTab === 'catalog' && (
-        <div className="space-y-6">
-          <ProductCategories />
-        </div>
-      )}
-      {activeTab === 'gallery' && (
-        <div className="space-y-6">
-          <PastWorkGallery />
-        </div>
-      )}
-      {activeTab === 'settings' && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-4 max-w-2xl">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Studio Settings</h3>
-              <p className="text-xs text-slate-500">Configure global defaults & rendering parameters</p>
-            </div>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 border border-gray-200 text-xs text-slate-600 space-y-2">
-            <p>• Rendering Engine: React Three Fiber v9</p>
-            <p>• Unit Scale: Metric (Centimeters to World Meters)</p>
-            <p>• Environment Lighting: City Preset HDRI (Daytime Studio)</p>
-          </div>
-        </div>
-      )}
-    </DashboardLayout>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="products" element={<Products />} />
+          <Route path="studio" element={<StudioPage />} />
+          <Route path="about" element={<About />} />
+          <Route path="*" element={<Home />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

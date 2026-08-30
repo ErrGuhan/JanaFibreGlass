@@ -121,10 +121,10 @@ const DEFAULT_STATE = {
     thickness: 12,
   },
   doorConfig: {
-    topWidth: 90,
-    bottomWidth: 90,
-    leftHeight: 210,
-    rightHeight: 210,
+    topWidth: 84.0,
+    bottomWidth: 84.0,
+    leftHeight: 210.0,
+    rightHeight: 210.0,
     thickness: 4.5,
     doorColor: '#d4a373',
     openAngle: 90, // Default 90 degrees
