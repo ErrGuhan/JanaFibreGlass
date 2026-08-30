@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Menu,
   X,
+  Smartphone,
 } from 'lucide-react'
 import { registerSW } from 'virtual:pwa-register'
 import {
@@ -25,6 +26,7 @@ export const AdminLayout: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState<boolean>(false)
   const [unsyncedCount, setUnsyncedCount] = useState<number>(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 
   useEffect(() => {
     // Scoped Service Worker registration for Admin route
@@ -51,9 +53,16 @@ export const AdminLayout: React.FC = () => {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     }
   }, [])
 
@@ -67,6 +76,16 @@ export const AdminLayout: React.FC = () => {
     await syncOfflineOrders()
     await checkSyncStatus()
     setIsSyncing(false)
+  }
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null)
+      }
+    }
   }
 
   const handleLogout = () => {
@@ -209,6 +228,17 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Custom PWA Install Button (Prompt 1) */}
+            {deferredPrompt && (
+              <button
+                onClick={handleInstallClick}
+                className="border border-blue-600 text-blue-600 hover:bg-blue-50 font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-2xs flex items-center gap-1.5"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>📲 Install Admin Studio</span>
+              </button>
+            )}
+
             {/* Network Status Pill */}
             {!isOnline ? (
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold shadow-2xs">
