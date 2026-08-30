@@ -1,24 +1,29 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { MainLayout } from './components/layout/MainLayout'
 import { Home } from './pages/Home'
 import { Products } from './pages/Products'
 import { StudioPage } from './pages/StudioPage'
 import { About } from './pages/About'
 import { AdminLogin } from './pages/admin/AdminLogin'
-import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { AdminLayout } from './components/layout/AdminLayout'
+import { ContentEditor } from './pages/admin/ContentEditor'
+import { AdminPOS } from './pages/admin/AdminPOS'
+import { OrderHistory } from './pages/admin/OrderHistory'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 
 /**
- * App - Multi-Page Routing Setup with React Router DOM & Admin Portal
+ * App - Multi-Page Routing Setup with React Router DOM & Enterprise Admin Portal
  * Routes:
  * Public:
  * - /         -> Home (Landing page with Hero, benefits, CTA)
  * - /products -> Products (Product Catalog Grid)
  * - /studio   -> 3D Studio (Interactive 3D Configurator Studio)
  * - /about    -> About (Company info, Contact Us, Disclaimers)
- * Protected Admin:
+ * Protected Admin Portal (Nested inside AdminLayout):
  * - /admin/login     -> Admin Login Page
- * - /admin/dashboard -> Admin Dashboard (Protected content editor)
+ * - /admin/content   -> Website Content Editor
+ * - /admin/pos       -> Standalone Isolated 3D Point of Sale Studio
+ * - /admin/orders    -> Order History & Offline Sync Status
  */
 export function App() {
   return (
@@ -32,16 +37,24 @@ export function App() {
           <Route path="about" element={<About />} />
         </Route>
 
-        {/* Admin Authentication & Hidden Dashboard Routes */}
+        {/* Admin Login Route */}
         <Route path="/admin/login" element={<AdminLogin />} />
+
+        {/* Protected Enterprise Admin Portal (AdminLayout Shell) */}
         <Route
-          path="/admin/dashboard"
+          path="/admin"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <AdminLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="content" replace />} />
+          <Route path="content" element={<ContentEditor />} />
+          <Route path="pos" element={<AdminPOS />} />
+          <Route path="orders" element={<OrderHistory />} />
+          <Route path="dashboard" element={<Navigate to="/admin/content" replace />} />
+        </Route>
 
         {/* Fallback */}
         <Route path="*" element={<Home />} />
