@@ -74,11 +74,12 @@ export async function getUnsyncedCount(): Promise<number> {
 /**
  * Sync offline orders from localforage to backend Express API /api/admin/orders.
  * Handles file uploads to Supabase storage ('customer-documents') before POSTing to Express backend.
- * Removes item from localforage ONLY if server returns 200/201 OK.
+ * Includes Authorization: Bearer <token> header for admin verification.
  */
 export async function syncOfflineOrders(): Promise<{ syncedCount: number; remainingCount: number }> {
   let syncedCount = 0
   let remainingCount = 0
+  const token = localStorage.getItem('adminToken')
 
   try {
     const keys = await offlineOrders.keys()
@@ -88,7 +89,7 @@ export async function syncOfflineOrders(): Promise<{ syncedCount: number; remain
 
       let uploadedUrls: string[] = order.documentUrls || []
 
-      // Prompt 3: Cloud Storage Upload Sequence via Supabase
+      // Cloud Storage Upload Sequence via Supabase
       if (order.files && order.files.length > 0) {
         for (const file of order.files) {
           try {
@@ -124,7 +125,10 @@ export async function syncOfflineOrders(): Promise<{ syncedCount: number; remain
       try {
         const response = await fetch('/api/admin/orders', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify(payloadToSend),
         })
 

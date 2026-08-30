@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import jwt from 'jsonwebtoken'
+import { verifyAdmin, JWT_SECRET } from '../middleware/auth'
 
 const router = express.Router()
 const prisma = new PrismaClient()
@@ -17,8 +19,7 @@ const DEFAULT_CONTENT = {
 
 /**
  * GET /api/content
- * Fetches the single SiteContent record (id: 1).
- * Creates default record if it does not exist yet.
+ * Public route to fetch the single SiteContent record (id: 1).
  */
 router.get('/api/content', async (_req: Request, res: Response) => {
   try {
@@ -35,16 +36,15 @@ router.get('/api/content', async (_req: Request, res: Response) => {
     return res.status(200).json(content)
   } catch (error) {
     console.error('Error fetching site content:', error)
-    // Fallback response if database connection is pending
     return res.status(200).json(DEFAULT_CONTENT)
   }
 })
 
 /**
  * PUT /api/content
- * Accepts JSON payload and updates the SiteContent record (id: 1).
+ * Protected admin route: Updates SiteContent record (id: 1).
  */
-router.put('/api/content', async (req: Request, res: Response) => {
+router.put('/api/content', verifyAdmin, async (req: Request, res: Response) => {
   try {
     const { heroHeadline, heroSubtext, aboutUsText, contactPhone, contactEmail } = req.body
 
@@ -81,7 +81,7 @@ router.put('/api/content', async (req: Request, res: Response) => {
 
 /**
  * POST /api/admin/login
- * Validates admin credentials and returns JWT session token.
+ * Issues a signed JWT token upon valid credentials.
  */
 router.post('/api/admin/login', (req: Request, res: Response) => {
   try {
@@ -91,9 +91,15 @@ router.post('/api/admin/login', (req: Request, res: Response) => {
     const expectedPass = process.env.ADMIN_PASS || 'admin123'
 
     if (username === expectedUser && password === expectedPass) {
+      const token = jwt.sign(
+        { username, role: 'admin', iat: Math.floor(Date.now() / 1000) },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      )
+
       return res.status(200).json({
         success: true,
-        token: 'mock-jwt-admin-token-' + Date.now(),
+        token,
         message: 'Admin authentication successful.',
       })
     }

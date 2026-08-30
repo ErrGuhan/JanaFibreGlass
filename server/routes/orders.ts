@@ -1,14 +1,15 @@
 import express, { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import { verifyAdmin } from '../middleware/auth'
 
 const router = express.Router()
 const prisma = new PrismaClient()
 
 /**
  * POST /api/admin/orders
- * Receives and persists customer orders (online or synced from offline store).
+ * Protected route: Receives and persists customer orders into PostgreSQL via Prisma.
  */
-router.post('/api/admin/orders', async (req: Request, res: Response) => {
+router.post('/api/admin/orders', verifyAdmin, async (req: Request, res: Response) => {
   try {
     const {
       customerName,
@@ -20,6 +21,7 @@ router.post('/api/admin/orders', async (req: Request, res: Response) => {
       colorName,
       colorHex,
       notes,
+      documentUrls,
     } = req.body
 
     if (!customerName || !customerPhone) {
@@ -36,6 +38,20 @@ router.post('/api/admin/orders', async (req: Request, res: Response) => {
         thickness: Number(thickness || 4.5),
         hexColor: String(colorHex || '#d4a373'),
         status: 'Ordered',
+        ...(documentUrls && documentUrls.length > 0
+          ? {
+              documents: {
+                create: documentUrls.map((url: string) => ({
+                  fileName: 'Customer_Attachment.pdf',
+                  fileType: 'TechnicalSpec',
+                  fileUrl: url,
+                })),
+              },
+            }
+          : {}),
+      },
+      include: {
+        documents: true,
       },
     })
 
@@ -48,6 +64,7 @@ router.post('/api/admin/orders', async (req: Request, res: Response) => {
         colorName,
         notes,
         createdAt: configRecord.createdAt,
+        documents: configRecord.documents,
       },
     })
   } catch (error) {
@@ -58,9 +75,9 @@ router.post('/api/admin/orders', async (req: Request, res: Response) => {
 
 /**
  * GET /api/admin/orders
- * Returns list of all customer orders.
+ * Protected route: Returns list of all customer orders.
  */
-router.get('/api/admin/orders', async (_req: Request, res: Response) => {
+router.get('/api/admin/orders', verifyAdmin, async (_req: Request, res: Response) => {
   try {
     const orders = await prisma.doorConfiguration.findMany({
       orderBy: { createdAt: 'desc' },

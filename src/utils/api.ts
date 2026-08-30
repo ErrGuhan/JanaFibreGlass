@@ -45,10 +45,14 @@ export async function fetchSiteContent(): Promise<SiteContentData> {
 }
 
 export async function updateSiteContent(payload: SiteContentData): Promise<SiteContentData> {
+  const token = localStorage.getItem('adminToken')
   try {
     const res = await fetch('/api/content', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(payload),
     })
     if (res.ok) {

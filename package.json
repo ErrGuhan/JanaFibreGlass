@@ -15,9 +15,11 @@
     "@react-three/fiber": "^9.7.0",
     "@supabase/supabase-js": "^2.112.4",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/three": "^0.185.4",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.1",
+    "jsonwebtoken": "^9.0.3",
     "localforage": "^1.10.0",
     "lucide-react": "^1.37.0",
     "react": "^19.2.8",
@@ -30,6 +32,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/localforage": "^0.0.33",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
