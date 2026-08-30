@@ -15,6 +15,8 @@ import {
   WifiOff,
   Plus,
   Minus,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 import { saveOfflineOrder } from '../../utils/offlineStore'
@@ -31,23 +33,19 @@ const FINISH_SWATCHES = [
 export const AdminPOS: React.FC = () => {
   const store = useAdminStore()
 
-  const [isSaving, setIsSaving] = useState(false)
+  const [isSaving, setIsSaving] = useState<boolean>(false)
   const [statusMessage, setStatusMessage] = useState<{
     type: 'success' | 'offline_warning' | 'error'
     text: string
   } | null>(null)
 
   const handleStepDimension = (
-    field: 'bottomWidth' | 'leftHeight' | 'rightHeight' | 'thickness',
+    field: 'topWidth' | 'bottomWidth' | 'leftHeight' | 'rightHeight' | 'thickness',
     delta: number
   ) => {
     const currentValue = store.doorConfig[field]
     const newValue = Math.max(1, parseFloat((currentValue + delta).toFixed(1)))
-    if (field === 'bottomWidth') {
-      store.setDoorConfig({ topWidth: newValue, bottomWidth: newValue })
-    } else {
-      store.setDoorConfig({ [field]: newValue })
-    }
+    store.setDoorConfig({ [field]: newValue })
   }
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -279,14 +277,42 @@ export const AdminPOS: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Width */}
+                {/* Width Top */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-800">Width (cm)</label>
+                  <label className="text-xs font-bold text-slate-800">Width (Top cm)</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStepDimension('topWidth', -0.5)}
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={store.doorConfig.topWidth}
+                      onChange={(e) => store.setDoorConfig({ topWidth: parseFloat(e.target.value) || 1 })}
+                      className="w-full text-center py-2.5 rounded-xl bg-slate-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono font-bold text-xs text-slate-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleStepDimension('topWidth', 0.5)}
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Width Bottom */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-800">Width (Bottom cm)</label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handleStepDimension('bottomWidth', -0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -294,16 +320,13 @@ export const AdminPOS: React.FC = () => {
                       type="number"
                       step="0.1"
                       value={store.doorConfig.bottomWidth}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value) || 1
-                        store.setDoorConfig({ topWidth: val, bottomWidth: val })
-                      }}
+                      onChange={(e) => store.setDoorConfig({ bottomWidth: parseFloat(e.target.value) || 1 })}
                       className="w-full text-center py-2.5 rounded-xl bg-slate-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono font-bold text-xs text-slate-900"
                     />
                     <button
                       type="button"
                       onClick={() => handleStepDimension('bottomWidth', 0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -390,6 +413,38 @@ export const AdminPOS: React.FC = () => {
                       className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Door Opening Side */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-800">Door Opening Side</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => store.setDoorConfig({ openSide: 'left' })}
+                      className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                        store.doorConfig.openSide === 'left'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Left Open</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => store.setDoorConfig({ openSide: 'right' })}
+                      className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                        store.doorConfig.openSide === 'right'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>Right Open</span>
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

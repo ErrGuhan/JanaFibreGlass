@@ -12,6 +12,8 @@ import {
   MessageCircle,
   Bookmark,
   Check,
+  ArrowLeft,
+  ArrowRight,
 } from 'lucide-react'
 import { useConfigStore, WALL_COLORS } from '../store/useConfigStore'
 import { sendWhatsAppInquiry } from '../utils/whatsapp'
@@ -30,14 +32,18 @@ export const FINISH_SWATCHES: ColorFinishOption[] = [
 ]
 
 export interface ConfigPanelProps {
-  width?: number
-  onWidthChange?: (val: number) => void
+  topWidth?: number
+  onTopWidthChange?: (val: number) => void
+  bottomWidth?: number
+  onBottomWidthChange?: (val: number) => void
   heightLeft?: number
   onHeightLeftChange?: (val: number) => void
   heightRight?: number
   onHeightRightChange?: (val: number) => void
   thickness?: number
   onThicknessChange?: (val: number) => void
+  openSide?: 'left' | 'right'
+  onOpenSideChange?: (side: 'left' | 'right') => void
   selectedColor?: string
   onColorChange?: (colorHex: string, colorName: string) => void
   onRequestQuote?: () => void
@@ -45,14 +51,18 @@ export interface ConfigPanelProps {
 }
 
 export const ConfigPanel: React.FC<ConfigPanelProps> = ({
-  width: propWidth,
-  onWidthChange,
+  topWidth: propTopWidth,
+  onTopWidthChange,
+  bottomWidth: propBottomWidth,
+  onBottomWidthChange,
   heightLeft: propHeightLeft,
   onHeightLeftChange,
   heightRight: propHeightRight,
   onHeightRightChange,
   thickness: propThickness,
   onThicknessChange,
+  openSide: propOpenSide,
+  onOpenSideChange,
   selectedColor: propSelectedColor,
   onColorChange,
   onRequestQuote,
@@ -64,10 +74,12 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   const store = useConfigStore()
 
-  const width = propWidth ?? store.doorConfig.bottomWidth
+  const topWidth = propTopWidth ?? store.doorConfig.topWidth
+  const bottomWidth = propBottomWidth ?? store.doorConfig.bottomWidth
   const heightLeft = propHeightLeft ?? store.doorConfig.leftHeight
   const heightRight = propHeightRight ?? store.doorConfig.rightHeight
   const thickness = propThickness ?? store.doorConfig.thickness
+  const openSide = propOpenSide ?? store.doorConfig.openSide
   const currentColor = propSelectedColor ?? store.color
   const isDoorOpen = store.doorConfig.isDoorOpen
   const wallColor = store.wallColor
@@ -78,10 +90,16 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
     return Math.round(clamped * 10) / 10
   }
 
-  const handleWidthChange = (val: number) => {
+  const handleTopWidthChange = (val: number) => {
     const clamped = clamp(val, 70, 120)
-    if (onWidthChange) onWidthChange(clamped)
-    else store.setDoorConfig({ topWidth: clamped, bottomWidth: clamped })
+    if (onTopWidthChange) onTopWidthChange(clamped)
+    else store.setDoorConfig({ topWidth: clamped })
+  }
+
+  const handleBottomWidthChange = (val: number) => {
+    const clamped = clamp(val, 70, 120)
+    if (onBottomWidthChange) onBottomWidthChange(clamped)
+    else store.setDoorConfig({ bottomWidth: clamped })
   }
 
   const handleHeightLeftChange = (val: number) => {
@@ -102,6 +120,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
     else store.setDoorConfig({ thickness: clamped })
   }
 
+  const handleOpenSideChange = (side: 'left' | 'right') => {
+    if (onOpenSideChange) onOpenSideChange(side)
+    else store.setDoorConfig({ openSide: side })
+  }
+
   const handleFinishSelect = (swatch: ColorFinishOption) => {
     if (onColorChange) {
       onColorChange(swatch.hex, swatch.name)
@@ -115,10 +138,12 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   const handleWhatsAppInquiry = () => {
     sendWhatsAppInquiry({
-      width,
+      topWidth,
+      bottomWidth,
       leftHeight: heightLeft,
       rightHeight: heightRight,
       thickness,
+      openSide,
       colorName: activeFinishObj.name,
       colorHex: activeFinishObj.hex,
     })
@@ -132,7 +157,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
   return (
     <div className={`w-full transition-all duration-300 select-none pb-24 md:pb-0 ${className}`}>
-      {/* Right side control panel: bg-white border-l border-gray-100 shadow-2xl rounded-2xl */}
       <div className="bg-white border-l border-gray-100 shadow-2xl rounded-2xl overflow-hidden text-slate-800">
         
         {/* Header */}
@@ -154,7 +178,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
           </button>
         </div>
 
-        {/* PROMPT 3: PILL-SHAPED TAB NAVIGATION */}
+        {/* Tab Navigation */}
         {!isCollapsed && (
           <div className="p-3 border-b border-gray-100 bg-slate-50/50 flex justify-center">
             <div className="bg-slate-200/70 p-1 rounded-full flex gap-1 w-full max-w-xs">
@@ -182,7 +206,6 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
           </div>
         )}
 
-        {/* Collapsible Content Area */}
         {!isCollapsed && (
           <div className="p-5 space-y-6">
             
@@ -191,39 +214,40 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                   <Ruler className="w-4 h-4 text-blue-600" />
-                  <span>Dimensions (cm)</span>
+                  <span>Dimensions & Opening Side</span>
                 </div>
 
-                {/* 1. Width Stepper */}
+                {/* 1. Width (Top) Stepper */}
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-bold text-slate-800">Width</span>
+                    <span className="font-bold text-slate-800">Width (Top)</span>
                     <span className="text-[11px] text-slate-400 font-mono">70.0 - 120.0 cm</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <button
-                      onClick={() => handleWidthChange(width - 0.5)}
+                      type="button"
+                      onClick={() => handleTopWidthChange(topWidth - 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
                     
-                    {/* Fully rounded stepper input */}
                     <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
                       <input
                         type="number"
                         min="70"
                         max="120"
                         step="0.1"
-                        value={width}
-                        onChange={(e) => handleWidthChange(parseFloat(e.target.value))}
+                        value={topWidth}
+                        onChange={(e) => handleTopWidthChange(parseFloat(e.target.value))}
                         className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
                     </div>
 
                     <button
-                      onClick={() => handleWidthChange(width + 0.5)}
+                      type="button"
+                      onClick={() => handleTopWidthChange(topWidth + 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
                       <Plus className="w-4 h-4" />
@@ -231,7 +255,45 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                 </div>
 
-                {/* 2. Height (Left) Stepper */}
+                {/* 2. Width (Bottom) Stepper */}
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-800">Width (Bottom)</span>
+                    <span className="text-[11px] text-slate-400 font-mono">70.0 - 120.0 cm</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleBottomWidthChange(bottomWidth - 0.5)}
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    
+                    <div className="flex-1 flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 px-4 py-2.5 shadow-xs">
+                      <input
+                        type="number"
+                        min="70"
+                        max="120"
+                        step="0.1"
+                        value={bottomWidth}
+                        onChange={(e) => handleBottomWidthChange(parseFloat(e.target.value))}
+                        className="w-16 bg-transparent text-center font-mono font-bold text-slate-900 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <span className="font-mono text-slate-400 text-xs font-bold">cm</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleBottomWidthChange(bottomWidth + 0.5)}
+                      className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Height (Left) Stepper */}
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-800">Height (Left)</span>
@@ -239,6 +301,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                   <div className="flex items-center gap-2.5">
                     <button
+                      type="button"
                       onClick={() => handleHeightLeftChange(heightLeft - 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -259,6 +322,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => handleHeightLeftChange(heightLeft + 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -267,7 +331,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                 </div>
 
-                {/* 3. Height (Right) Stepper */}
+                {/* 4. Height (Right) Stepper */}
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-800">Height (Right)</span>
@@ -275,6 +339,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                   <div className="flex items-center gap-2.5">
                     <button
+                      type="button"
                       onClick={() => handleHeightRightChange(heightRight - 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -295,6 +360,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => handleHeightRightChange(heightRight + 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -303,7 +369,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                 </div>
 
-                {/* 4. Thickness Stepper */}
+                {/* 5. Thickness Stepper */}
                 <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-800">Thickness</span>
@@ -311,6 +377,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   </div>
                   <div className="flex items-center gap-2.5">
                     <button
+                      type="button"
                       onClick={() => handleThicknessChange(thickness - 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -331,6 +398,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => handleThicknessChange(thickness + 0.5)}
                       className="p-3 min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-full bg-white hover:bg-slate-100 active:scale-95 text-slate-700 font-bold border border-slate-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                     >
@@ -338,6 +406,39 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </button>
                   </div>
                 </div>
+
+                {/* 6. Door Opening Side Selector (Dual Pill Button Toggle) */}
+                <div className="p-4 rounded-2xl bg-slate-50/80 border border-gray-100 space-y-2.5">
+                  <span className="text-xs font-bold text-slate-800 block">Door Opening Side</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSideChange('left')}
+                      className={`py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                        openSide === 'left'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>Left Open</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSideChange('right')}
+                      className={`py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                        openSide === 'right'
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      <span>Right Open</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
               </div>
             )}
 
@@ -363,6 +464,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       return (
                         <button
                           key={swatch.name}
+                          type="button"
                           onClick={() => handleFinishSelect(swatch)}
                           className="group flex flex-col items-center gap-1.5 transition-all transform active:scale-95"
                         >
@@ -406,6 +508,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       return (
                         <button
                           key={wSwatch.name}
+                          type="button"
                           onClick={() => store.setWallColor(wSwatch.hex, wSwatch.name)}
                           className="group flex flex-col items-center gap-1 transition-all transform active:scale-95"
                         >
@@ -441,6 +544,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       Open Door Panel
                     </span>
                     <button
+                      type="button"
                       onClick={() => store.toggleDoorOpen()}
                       className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                         isDoorOpen ? 'bg-blue-600' : 'bg-slate-300'
@@ -459,6 +563,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
             {/* Save Design Button */}
             <button
+              type="button"
               onClick={handleSaveDesign}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-all border border-gray-200 shadow-xs"
             >
@@ -475,9 +580,10 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
 
       </div>
 
-      {/* PROMPT 3: STICKY GLASSMORPHIC FOOTER CONTAINER FOR WHATSAPP BUTTON */}
+      {/* STICKY GLASSMORPHIC FOOTER CONTAINER FOR WHATSAPP BUTTON */}
       <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-gray-100 md:relative md:bg-transparent md:border-none md:p-0 z-40 shadow-lg md:shadow-none">
         <button
+          type="button"
           onClick={handleWhatsAppInquiry}
           className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2.5 w-full transition-all active:scale-[0.98] text-sm"
         >

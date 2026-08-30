@@ -8,6 +8,7 @@ export interface AdminDoorConfig {
   thickness: number
   colorName: string
   colorHex: string
+  openSide: 'left' | 'right'
 }
 
 export interface AdminCustomerCRM {
@@ -34,6 +35,7 @@ const DEFAULT_ADMIN_DOOR: AdminDoorConfig = {
   thickness: 4.5,
   colorName: 'Light Oak',
   colorHex: '#d4a373',
+  openSide: 'left',
 }
 
 const DEFAULT_ADMIN_CRM: AdminCustomerCRM = {

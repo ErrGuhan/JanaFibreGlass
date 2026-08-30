@@ -38,6 +38,7 @@ export interface DoorConfig {
   rightHeight: number
   thickness: number
   doorColor: string
+  openSide: 'left' | 'right' // Default 'left'
   openAngle: number // Default 90 degrees
   isDoorOpen: boolean // Default false
   animationMode: AnimationMode // Default 'smooth'
@@ -127,6 +128,7 @@ const DEFAULT_STATE = {
     rightHeight: 210.0,
     thickness: 4.5,
     doorColor: '#d4a373',
+    openSide: 'left' as 'left' | 'right',
     openAngle: 90, // Default 90 degrees
     isDoorOpen: false, // Default closed
     animationMode: 'smooth' as AnimationMode,

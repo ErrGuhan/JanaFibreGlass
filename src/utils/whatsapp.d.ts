@@ -1,8 +1,11 @@
 export interface WhatsAppConfig {
-  width: number | string;
+  topWidth?: number | string;
+  bottomWidth?: number | string;
+  width?: number | string;
   leftHeight: number | string;
   rightHeight: number | string;
   thickness: number | string;
+  openSide?: 'left' | 'right';
   colorName: string;
   colorHex: string;
 }
