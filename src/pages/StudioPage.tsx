@@ -86,6 +86,9 @@ export const StudioPage: React.FC = () => {
                     <OrbitControls
                       makeDefault
                       enableDamping
+                      enablePan={false}
+                      enableZoom={true}
+                      enableRotate={true}
                       dampingFactor={0.06}
                       minDistance={1.2}
                       maxDistance={8}

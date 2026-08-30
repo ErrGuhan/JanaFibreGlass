@@ -183,7 +183,13 @@ export const AdminPOS: React.FC = () => {
                 <ParametricDoor />
               </group>
 
-              <OrbitControls makeDefault enablePan={true} maxPolarAngle={Math.PI / 2 + 0.1} />
+              <OrbitControls
+                makeDefault
+                enablePan={false}
+                enableZoom={true}
+                enableRotate={true}
+                maxPolarAngle={Math.PI / 2 + 0.1}
+              />
             </Canvas>
 
             {/* Quick Sizing Overlay */}
@@ -311,7 +317,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('leftHeight', -0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -325,7 +331,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('leftHeight', 0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -339,7 +345,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('rightHeight', -0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -353,7 +359,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('rightHeight', 0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -367,7 +373,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('thickness', -0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
@@ -381,7 +387,7 @@ export const AdminPOS: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleStepDimension('thickness', 0.5)}
-                      className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold active:scale-95 shrink-0 flex items-center justify-center"
                     >
                       <Plus className="w-4 h-4" />
                     </button>

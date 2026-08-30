@@ -216,7 +216,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleWidthChange(width - 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Decrease Width by 0.5 cm"
                     >
                       <Minus className="w-4 h-4" />
@@ -236,7 +236,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
                     <button
                       onClick={() => handleWidthChange(width + 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Increase Width by 0.5 cm"
                     >
                       <Plus className="w-4 h-4" />
@@ -253,7 +253,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleHeightLeftChange(heightLeft - 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Decrease Left Height by 0.5 cm"
                     >
                       <Minus className="w-4 h-4" />
@@ -273,7 +273,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
                     <button
                       onClick={() => handleHeightLeftChange(heightLeft + 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Increase Left Height by 0.5 cm"
                     >
                       <Plus className="w-4 h-4" />
@@ -290,7 +290,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleHeightRightChange(heightRight - 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Decrease Right Height by 0.5 cm"
                     >
                       <Minus className="w-4 h-4" />
@@ -310,7 +310,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
                     <button
                       onClick={() => handleHeightRightChange(heightRight + 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Increase Right Height by 0.5 cm"
                     >
                       <Plus className="w-4 h-4" />
@@ -327,7 +327,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleThicknessChange(thickness - 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Decrease Thickness by 0.5 cm"
                     >
                       <Minus className="w-4 h-4" />
@@ -347,7 +347,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                     </div>
                     <button
                       onClick={() => handleThicknessChange(thickness + 0.5)}
-                      className="w-10 h-10 rounded-lg bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs"
+                      className="min-h-[44px] min-w-[44px] w-[44px] h-[44px] rounded-xl bg-white hover:bg-gray-100 active:scale-95 text-slate-600 font-bold border border-gray-200 flex items-center justify-center transition-all shadow-xs shrink-0"
                       title="Increase Thickness by 0.5 cm"
                     >
                       <Plus className="w-4 h-4" />
