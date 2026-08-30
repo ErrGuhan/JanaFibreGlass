@@ -31,8 +31,8 @@ export const StudioPage: React.FC = () => {
       {activeTab === 'configurator' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* COLUMN 1: 3D Canvas */}
-            <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 relative h-[360px] sm:h-[540px] lg:h-[720px] overflow-hidden flex flex-col">
+            {/* COLUMN 1: 3D Canvas (Constrained on mobile to h-[50vh] max-h-[420px] to prevent touch trap) */}
+            <div className="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-2 relative h-[50vh] min-h-[320px] max-h-[420px] sm:h-[540px] lg:h-[720px] lg:max-h-none overflow-hidden flex flex-col">
               <div className="relative flex-1 w-full h-full rounded-2xl overflow-hidden">
                 <Suspense fallback={<DOMCanvasLoader />}>
                   <Canvas

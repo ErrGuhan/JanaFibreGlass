@@ -239,10 +239,31 @@ export const AdminLayout: React.FC = () => {
           </div>
         </header>
 
-        {/* SUB-PAGE RENDER CONTAINER */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* SUB-PAGE RENDER CONTAINER (pb-20 on mobile to clear bottom navbar) */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 pb-20 md:pb-8">
           <Outlet />
         </main>
+
+        {/* MOBILE BOTTOM NAVIGATION BAR */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-40 flex items-center justify-around py-2 shadow-lg">
+          {navLinks.map((link) => {
+            const Icon = link.icon
+            return (
+              <NavLink
+                key={link.path}
+                to={link.path}
+                className={({ isActive }) =>
+                  `flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-[10px] font-bold transition-all ${
+                    isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                  }`
+                }
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                <span>{link.name.replace('Website ', '').replace('3D ', '')}</span>
+              </NavLink>
+            )
+          })}
+        </nav>
       </div>
     </div>
   )

@@ -74,7 +74,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Key Benefits Pills */}
-            <div className="pt-6 grid grid-cols-3 gap-4 border-t border-gray-200/80">
+            <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-gray-200/80">
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>100% Waterproof</span>

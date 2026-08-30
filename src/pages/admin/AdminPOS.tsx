@@ -171,7 +171,7 @@ export const AdminPOS: React.FC = () => {
             </span>
           </div>
 
-          <div className="h-[380px] bg-slate-900 rounded-xl relative overflow-hidden shadow-inner">
+          <div className="h-64 sm:h-[380px] bg-slate-900 rounded-xl relative overflow-hidden shadow-inner">
             <Canvas>
               <PerspectiveCamera makeDefault position={[0, 1.2, 3.5]} fov={45} />
               <ambientLight intensity={0.7} />
